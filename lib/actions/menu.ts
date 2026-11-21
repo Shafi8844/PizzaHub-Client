@@ -10,3 +10,10 @@ export const createmenu= async (menuData: FormData) => {
     })
     return res.json()
 }
+
+export const deleteMenuItem = async (menuId: string) => {
+    const res = await fetch(`${BaseUrl}/menu/${menuId}`, {
+        method: 'DELETE',
+    })
+    return res.json()
+}
