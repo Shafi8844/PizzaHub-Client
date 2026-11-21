@@ -92,7 +92,7 @@ export default function Nav() {
               <DropdownMenuSeparator className="-mx-1.5 my-1 bg-line" />
 
               <DropdownMenuItem
-                render={<Link href="/dashboard" />}
+                render={<Link href={`/dashboard/${session.user?.role || 'customer'}`} />}
                 className="gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-ink focus:bg-brand-tint"
               >
                 <LayoutDashboard className="size-4" aria-hidden />
