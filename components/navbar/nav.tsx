@@ -17,7 +17,7 @@ import { signOut, useSession } from "@/lib/auth-client"
 
 const navLinks = [
   { name: "Home", url: "/" },
-  { name: "Browse Menu", url: "/#featured" },
+  { name: "Browse Menu", url: "/browse-menu" },
 ]
 
 function initialsFor(name: string) {

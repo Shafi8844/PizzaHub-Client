@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { ImagePlus, Info } from "lucide-react"
+import { Info } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -19,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { createmenu } from "@/lib/actions/menu"
+import { createmenu, type NewMenuItem } from "@/lib/actions/menu"
 
 const inputClassName =
   "h-11 rounded-xl border-line bg-white px-3.5 text-sm text-ink placeholder:text-[#9a8e82] focus-visible:border-brand focus-visible:ring-brand/15"
@@ -29,8 +30,19 @@ const labelClassName = "text-[13px] font-semibold text-ink"
 const AddNewItems = () => {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const data = Object.fromEntries(new FormData(event.currentTarget))
-    const result = await createmenu(data as unknown as FormData)
+    const formData = new FormData(event.currentTarget)
+
+    const payload: NewMenuItem = {
+      name: String(formData.get("name") ?? "").trim(),
+      category: String(formData.get("category") ?? "").trim(),
+      description: String(formData.get("description") ?? "").trim(),
+      price: Number(formData.get("price") ?? 0),
+      location: String(formData.get("location") ?? "").trim(),
+      image: String(formData.get("image") ?? "").trim(),
+      status: "Pending",
+    }
+
+    const result = await createmenu(payload)
     console.log(result)
   }
 
@@ -38,7 +50,8 @@ const AddNewItems = () => {
     <div className="min-h-screen bg-cream px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
       <div className="mx-auto w-full max-w-[1040px]">
         <p className="text-xs font-medium text-ink-soft">
-          Vendor <span className="mx-1.5 text-line-strong">/</span> Add Menu Item
+          Vendor <span className="mx-1.5 text-line-strong">/</span> Add Menu
+          Item
         </p>
         <h1 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.02em] text-ink">
           Add Menu Item
@@ -51,14 +64,15 @@ const AddNewItems = () => {
           <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
             <CardContent className="gap-5 p-6">
               <div className="space-y-2">
-                <Label htmlFor="itemName" className={labelClassName}>
+                <Label htmlFor="name" className={labelClassName}>
                   Item name
                 </Label>
                 <Input
-                  id="itemName"
-                  name="itemName"
+                  id="name"
+                  name="name"
                   placeholder="e.g. Classic Margherita"
                   className={inputClassName}
+                  required
                 />
               </div>
 
@@ -66,7 +80,7 @@ const AddNewItems = () => {
                 <Label htmlFor="category" className={labelClassName}>
                   Category
                 </Label>
-                <Select name="category" defaultValue="classic-pizzas">
+                <Select name="category" defaultValue="Classic Pizzas">
                   <SelectTrigger
                     id="category"
                     className={`${inputClassName} w-full justify-between`}
@@ -74,13 +88,13 @@ const AddNewItems = () => {
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="classic-pizzas">Classic Pizzas</SelectItem>
-                    <SelectItem value="signature-pizzas">
+                    <SelectItem value="Classic Pizzas">Classic Pizzas</SelectItem>
+                    <SelectItem value="Signature Pizzas">
                       Signature Pizzas
                     </SelectItem>
-                    <SelectItem value="sides">Sides</SelectItem>
-                    <SelectItem value="drinks">Drinks</SelectItem>
-                    <SelectItem value="desserts">Desserts</SelectItem>
+                    <SelectItem value="Sides">Sides</SelectItem>
+                    <SelectItem value="Drinks">Drinks</SelectItem>
+                    <SelectItem value="Desserts">Desserts</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -95,6 +109,7 @@ const AddNewItems = () => {
                   rows={5}
                   placeholder="Describe the item, its toppings and flavours..."
                   className="min-h-32 resize-none rounded-xl border-line bg-white p-3.5 text-sm text-ink placeholder:text-[#9a8e82] focus-visible:border-brand focus-visible:ring-brand/15"
+                  required
                 />
               </div>
 
@@ -113,6 +128,7 @@ const AddNewItems = () => {
                       step="0.01"
                       placeholder="0.00"
                       className="h-full border-0 bg-transparent pl-2 shadow-none focus-visible:ring-0"
+                      required
                     />
                   </div>
                 </div>
@@ -126,6 +142,7 @@ const AddNewItems = () => {
                     name="location"
                     placeholder="e.g. Dhanmondi, Dhaka"
                     className={inputClassName}
+                    required
                   />
                 </div>
               </div>
@@ -138,25 +155,22 @@ const AddNewItems = () => {
                 <CardTitle className={labelClassName}>Item image</CardTitle>
               </CardHeader>
               <CardContent className="p-5 pt-3">
-                <Label
-                  htmlFor="itemImage"
-                  className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-line-strong bg-[#fdfaf7] px-4 py-6 text-center"
-                >
-                  <ImagePlus className="size-7 text-ink-soft" aria-hidden />
-                  <span className="mt-3 text-sm font-medium text-ink">
-                    Drop an image or browse.
-                  </span>
-                  <span className="mt-1 text-xs font-normal text-ink-soft">
-                    Uploaded to ImgBB.
-                  </span>
+                <div className="space-y-2">
+                  <Label htmlFor="image" className="sr-only">
+                    Image URL
+                  </Label>
                   <Input
-                    id="itemImage"
-                    name="itemImage"
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
+                    id="image"
+                    name="image"
+                    type="url"
+                    placeholder="https://..."
+                    className={inputClassName}
+                    required
                   />
-                </Label>
+                  <p className="text-xs text-ink-soft">
+                    Provide a public image URL for this menu item.
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
@@ -167,7 +181,8 @@ const AddNewItems = () => {
                   <p className={labelClassName}>Pending review</p>
                 </div>
                 <p className="text-xs leading-relaxed text-ink-soft">
-                  New items are reviewed by an admin before they go live.
+                  New items are submitted with <span className="font-medium">Pending</span>{" "}
+                  status and reviewed before they go live.
                 </p>
               </CardContent>
             </Card>

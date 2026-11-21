@@ -67,7 +67,7 @@ const MenuItemsPage =async () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {menu.map((item) => (
+                  {menu.map((item: MenuItem) => (
                     <tr
                       key={item._id}
                       className="border-b border-line last:border-b-0"
