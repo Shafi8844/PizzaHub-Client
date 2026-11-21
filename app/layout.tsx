@@ -1,7 +1,7 @@
-import { Fraunces,Inter } from "next/font/google"
+import { Fraunces, Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -19,7 +19,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", inter.variable, fraunces.variable, "font-sans")}
+      className={cn(
+        "antialiased",
+        inter.variable,
+        fraunces.variable,
+        "font-sans"
+      )}
     >
       <body>
         <ThemeProvider>{children}</ThemeProvider>

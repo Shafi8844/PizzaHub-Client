@@ -1,17 +1,21 @@
 "use client"
 
 import React, { useState } from "react"
-import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
+import Logo from "@/components/logo"
 
-const roles = ["Customer", "Vendor", "Admin"] as const
-type Role = (typeof roles)[number]
+const roles = [
+  { value: "customer", label: "Customer" },
+  { value: "vendor", label: "Vendor" },
+  { value: "admin", label: "Admin" },
+] as const
+type Role = (typeof roles)[number]["value"]
 
 const fieldClassName =
-  "mt-1.5 h-10 w-full rounded-xl border border-[#e4d8cb] bg-white px-3 text-sm text-[#29231f] shadow-none outline-none transition focus-visible:border-[#cf301d] focus-visible:ring-2 focus-visible:ring-[#cf301d]/15"
+  "mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink shadow-none outline-none transition placeholder:text-[#8a7f74] focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/15"
 
 function FormField({
   id,
@@ -32,7 +36,7 @@ function FormField({
 }) {
   return (
     <div>
-      <label htmlFor={id} className="text-xs font-semibold text-[#29231f]">
+      <label htmlFor={id} className="text-[13px] font-semibold text-ink">
         {label}
       </label>
       <input
@@ -43,33 +47,45 @@ function FormField({
         accept={accept}
         autoComplete={autoComplete}
         required={required}
-        className={`${fieldClassName} ${type === "file" ? "file:mr-3 file:border-0 file:bg-transparent file:text-xs file:font-medium file:text-[#6d6259]" : ""}`}
+        className={`${fieldClassName} ${type === "file" ? "cursor-pointer file:mr-3 file:cursor-pointer file:rounded-lg file:border file:border-line file:bg-[#fdfbf8] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-ink-soft" : ""}`}
       />
     </div>
   )
 }
 
-function RolePicker({ value, onChange }: { value: Role; onChange: (role: Role) => void }) {
+function RolePicker({
+  value,
+  onChange,
+}: {
+  value: Role
+  onChange: (role: Role) => void
+}) {
   return (
     <fieldset>
-      <legend className="text-xs font-semibold text-[#29231f]">Account role</legend>
-      <div role="radiogroup" aria-label="Account role" className="mt-2 grid grid-cols-3 gap-2">
-        {roles.map((role) => {
-          const selected = value === role
+      <legend className="text-[13px] font-semibold text-ink">
+        Account role
+      </legend>
+      <div
+        role="radiogroup"
+        aria-label="Account role"
+        className="mt-2 grid grid-cols-3 gap-2"
+      >
+        {roles.map(({ value: roleValue, label }) => {
+          const selected = value === roleValue
           return (
             <button
-              key={role}
+              key={roleValue}
               type="button"
               role="radio"
               aria-checked={selected}
-              onClick={() => onChange(role)}
-              className={`min-h-10 rounded-xl border px-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#cf301d]/30 sm:text-sm ${
+              onClick={() => onChange(roleValue)}
+              className={`min-h-11 rounded-xl border px-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/30 focus-visible:outline-none ${
                 selected
-                  ? "border-[#cf301d] bg-[#fff0ec] text-[#29231f] ring-1 ring-[#cf301d]"
-                  : "border-[#e4d8cb] bg-white text-[#29231f] hover:border-[#cf301d]/50"
+                  ? "border-brand bg-brand-tint text-ink ring-1 ring-brand"
+                  : "border-line bg-white text-ink hover:border-brand/50"
               }`}
             >
-              {role === "Vendor" ? "Vendor" : role}
+              {label}
             </button>
           )
         })}
@@ -79,7 +95,7 @@ function RolePicker({ value, onChange }: { value: Role; onChange: (role: Role) =
 }
 
 export default function SignUpForm() {
-  const [role, setRole] = useState<Role>("Customer")
+  const [role, setRole] = useState<Role>("customer")
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
@@ -95,15 +111,18 @@ export default function SignUpForm() {
     const password = String(formData.get("password") ?? "")
 
     try {
-      const { data,error } = await authClient.signUp.email({
+      const { error } = await authClient.signUp.email({
         name,
         email,
         password,
+        role,
         callbackURL: "/",
       })
 
       if (error) {
-        setErrorMessage(error.message ?? "We couldn't create your account. Please try again.")
+        setErrorMessage(
+          error.message ?? "We couldn't create your account. Please try again."
+        )
         return
       }
 
@@ -113,62 +132,84 @@ export default function SignUpForm() {
     } finally {
       setIsSubmitting(false)
     }
-    console.log()
   }
 
   return (
     <div className="w-full max-w-[400px]">
-      <Link href="/" className="mb-7 inline-flex items-center gap-2" aria-label="PizzaHub home">
-        <Image src="/pizzahub-icon.png" alt="" width={20} height={20} className="h-5 w-5 rounded-full" />
-        <span className="font-heading text-lg font-bold tracking-[-0.04em] text-[#211c19]">PizzaHub</span>
-      </Link>
+      <Logo className="mb-7" />
 
-      <div className="mb-4">
-        <h2 className="font-heading text-3xl font-bold tracking-[-0.04em] text-[#211c19] sm:text-[34px]">
+      <div className="mb-5">
+        <h2 className="font-heading text-3xl font-semibold tracking-[-0.02em] text-ink sm:text-[34px]">
           Sign Up
         </h2>
-        <p className="mt-1 text-xs text-[#625951] sm:text-sm">Create your PizzaHub account.</p>
+        <p className="mt-1.5 text-sm text-ink-soft">
+          Create your PizzaHub account.
+        </p>
       </div>
 
       <Button
         type="button"
         variant="outline"
-        className="h-10 w-full rounded-xl border-[#e9dfd3] bg-white text-sm text-[#29231f] hover:bg-[#fffaf5]"
+        className="h-11 w-full rounded-xl border-line bg-white text-sm font-medium text-ink hover:bg-[#fffaf5]"
       >
         Continue with Google
       </Button>
-      <div className="my-4 flex items-center gap-3 text-xs text-[#625951]">
-        <span className="h-px flex-1 bg-[#e9dfd3]" />
+      <div className="my-4 flex items-center gap-3 text-xs text-ink-soft">
+        <span className="h-px flex-1 bg-line" />
         or use your email
-        <span className="h-px flex-1 bg-[#e9dfd3]" />
+        <span className="h-px flex-1 bg-line" />
       </div>
 
-      <form onSubmit={handleSignUp} className="space-y-3">
-        <FormField id="fullName" label="Full name" autoComplete="name" required />
-        <FormField id="email" label="Email" type="email" placeholder="" autoComplete="email" required />
+      <form onSubmit={handleSignUp} className="space-y-3.5">
+        <FormField
+          id="fullName"
+          label="Full name"
+          autoComplete="name"
+          required
+        />
+        <FormField
+          id="email"
+          label="Email"
+          type="email"
+          placeholder="you@email.com"
+          autoComplete="email"
+          required
+        />
         <FormField
           id="password"
           label="Password"
           type="password"
-          placeholder="At least 8 characters"
+          placeholder="Min 8 characters"
           autoComplete="new-password"
           required
         />
-        <FormField id="profileImage" label="Profile image (optional)" type="file" accept="image/*" />
+        <FormField
+          id="profileImage"
+          label="Profile image (optional)"
+          type="file"
+          accept="image/*"
+        />
         <RolePicker value={role} onChange={setRole} />
-        {errorMessage && <p role="alert" className="text-sm text-red-700">{errorMessage}</p>}
+        {errorMessage && (
+          <p
+            role="alert"
+            className="rounded-xl border border-[#f3c9c2] bg-[#fdf1ef] px-3.5 py-2.5 text-sm text-[#a3281a]"
+          >
+            {errorMessage}
+          </p>
+        )}
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="h-10 w-full rounded-xl bg-[#cf301d] text-sm font-semibold text-white hover:bg-[#b92516]"
+          className="h-11 w-full rounded-xl bg-brand text-sm font-semibold text-white hover:bg-brand-hover"
         >
           {isSubmitting ? "Creating account..." : "Sign Up"}
         </Button>
       </form>
 
-      <p className="mt-4 text-center text-xs text-[#625951] sm:text-sm">
+      <p className="mt-5 text-center text-sm text-ink-soft">
         Have an account?{" "}
-        <Link href="/sign-in" className="font-medium text-[#29231f] hover:text-[#cf301d]">
+        <Link href="/sign-in" className="font-medium text-ink hover:text-brand">
           Sign In
         </Link>
       </p>
