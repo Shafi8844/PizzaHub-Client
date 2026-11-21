@@ -8,21 +8,26 @@ import { Card, CardContent } from "@/components/ui/card"
 import { getMenuItems } from "@/lib/api/menu"
 import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
 
+export type MenuItemStatus = "pending" | "approved" | "rejected" | "inactive"
+
 export type MenuItem = {
   _id: string
-  name: string
-  description: string
+  vendorId: string
+  itemName: string
   category: string
+  description: string
   price: number
-  status: "Live" | "Pending" | "Draft"
   location: string
-  image: string
+  images: string[]
+  status: MenuItemStatus
+  createdAt: string
 }
 
-const statusStyles: Record<MenuItem["status"], string> = {
-  Live: "bg-leaf-tint text-leaf",
-  Pending: "bg-gold-tint text-gold",
-  Draft: "bg-[#f3ece3] text-ink-soft",
+const statusStyles: Record<MenuItemStatus, string> = {
+  approved: "bg-leaf-tint text-leaf",
+  pending: "bg-gold-tint text-gold",
+  rejected: "bg-brand-tint text-brand",
+  inactive: "bg-[#f3ece3] text-ink-soft",
 }
 
 const MenuItemsPage =async () => {
@@ -75,14 +80,14 @@ const MenuItemsPage =async () => {
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <Image
-                            src={item.image}
-                            alt={item.name}
+                            src={item.images?.[0] || "/placeholder.png"}
+                            alt={item.itemName}
                             width={56}
                             height={56}
                             className="size-14 rounded-xl object-cover ring-1 ring-line"
                           />
                           <div className="min-w-0">
-                            <p className="font-medium text-ink">{item.name}</p>
+                            <p className="font-medium text-ink">{item.itemName}</p>
                             <p className="mt-1 max-w-[320px] truncate text-sm text-ink-soft">
                               {item.description}
                             </p>
@@ -100,7 +105,7 @@ const MenuItemsPage =async () => {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${statusStyles[item.status]}`}
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[item.status] ?? statusStyles.pending}`}
                         >
                           {item.status}
                         </span>
@@ -111,7 +116,7 @@ const MenuItemsPage =async () => {
                             variant="outline"
                             size="icon-sm"
                             className="rounded-lg border-line text-ink-soft hover:bg-[#f5ede3] hover:text-ink"
-                            aria-label={`Edit ${item.name}`}
+                            aria-label={`Edit ${item.itemName}`}
                           >
                             <Pencil className="size-4" aria-hidden />
                           </Button>

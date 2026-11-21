@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Info } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -21,6 +22,7 @@ import {
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { createmenu, type NewMenuItem } from "@/lib/actions/menu"
+import { useSession } from "@/lib/auth-client"
 
 const inputClassName =
   "h-11 rounded-xl border-line bg-white px-3.5 text-sm text-ink placeholder:text-[#9a8e82] focus-visible:border-brand focus-visible:ring-brand/15"
@@ -28,22 +30,30 @@ const inputClassName =
 const labelClassName = "text-[13px] font-semibold text-ink"
 
 const AddNewItems = () => {
+  const router = useRouter()
+  const { data: session } = useSession()
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
 
     const payload: NewMenuItem = {
-      name: String(formData.get("name") ?? "").trim(),
+      vendorId: session?.user?.id ?? "",
+      itemName: String(formData.get("itemName") ?? "").trim(),
       category: String(formData.get("category") ?? "").trim(),
       description: String(formData.get("description") ?? "").trim(),
       price: Number(formData.get("price") ?? 0),
       location: String(formData.get("location") ?? "").trim(),
-      image: String(formData.get("image") ?? "").trim(),
-      status: "Pending",
+      images: [String(formData.get("image") ?? "").trim()].filter(Boolean),
+      status: "pending",
+      createdAt: new Date().toISOString(),
     }
 
     const result = await createmenu(payload)
-    console.log(result)
+    if (result?.insertedId) {
+      router.push("/dashboard/vendor/menu-items")
+      router.refresh()
+    }
   }
 
   return (
@@ -64,12 +74,12 @@ const AddNewItems = () => {
           <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
             <CardContent className="gap-5 p-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className={labelClassName}>
+                <Label htmlFor="itemName" className={labelClassName}>
                   Item name
                 </Label>
                 <Input
-                  id="name"
-                  name="name"
+                  id="itemName"
+                  name="itemName"
                   placeholder="e.g. Classic Margherita"
                   className={inputClassName}
                   required
@@ -181,7 +191,7 @@ const AddNewItems = () => {
                   <p className={labelClassName}>Pending review</p>
                 </div>
                 <p className="text-xs leading-relaxed text-ink-soft">
-                  New items are submitted with <span className="font-medium">Pending</span>{" "}
+                  New items are submitted with <span className="font-medium">pending</span>{" "}
                   status and reviewed before they go live.
                 </p>
               </CardContent>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
 import Logo from "@/components/logo"
+import { useSearchParams } from "next/navigation"
 
 const fieldClassName =
   "mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink shadow-none outline-none transition placeholder:text-[#8a7f74] focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/15"
@@ -14,6 +15,8 @@ export default function SignInForm() {
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo") || "/";
 
   async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -28,7 +31,7 @@ export default function SignInForm() {
       const { error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/",
+        callbackURL: redirectTo,
       })
 
       if (error) {

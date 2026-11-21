@@ -1,13 +1,15 @@
 const BaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"
 
 export type NewMenuItem = {
-  name: string
-  description: string
+  vendorId: string
+  itemName: string
   category: string
+  description: string
   price: number
-  status: "Live" | "Pending" | "Draft"
   location: string
-  image: string
+  images: string[]
+  status: "pending" | "approved" | "rejected" | "inactive"
+  createdAt: string
 }
 
 export const createmenu = async (menuData: NewMenuItem) => {

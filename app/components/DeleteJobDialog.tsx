@@ -15,9 +15,7 @@ import { MenuItem } from "../dashboard/vendor/menu-items/page"
 import { Trash2Icon } from "lucide-react"
 import { deleteMenuItem } from "@/lib/actions/menu"
 import { useState } from "react"
-import { toast } from "@/components/ui/toast"
 import { useRouter } from "next/navigation"
-import { router } from "better-auth/api"
 
 
 export function DeleteJobDialog({menu}:{menu:MenuItem}) {
@@ -29,10 +27,6 @@ export function DeleteJobDialog({menu}:{menu:MenuItem}) {
         const response = await deleteMenuItem(menu._id);
         if(response.deletedCount){
             setOpen(false);
-            toast.add({
-                title: "Menu item deleted",
-                description: `The menu item "${menu.name}" has been deleted successfully.`,
-            });
             router.refresh();
         }
         console.log("delete response:", menu._id, response);
@@ -50,7 +44,7 @@ export function DeleteJobDialog({menu}:{menu:MenuItem}) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete}>Delete Item</AlertDialogAction>
+          <AlertDialogAction onClick={handleDelete} className="bg-brand text-white hover:bg-brand-hover">Delete Item</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

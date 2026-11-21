@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select"
 import { getMenuItems } from "@/lib/api/menu"
 import type { MenuItem } from "@/app/dashboard/vendor/menu-items/page"
+import { MenuItemDialog } from "./_components/menu-item-dialog"
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
 
@@ -142,10 +143,10 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
                   className="overflow-hidden rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0"
                 >
                   <div className="relative aspect-[4/3] bg-[#f5ede3]">
-                    {item.image ? (
+                    {item.images?.[0] ? (
                       <Image
-                        src={item.image}
-                        alt={item.name}
+                        src={item.images[0]}
+                        alt={item.itemName}
                         fill
                         className="object-cover"
                         sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
@@ -163,7 +164,7 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
                           {item.category}
                         </p>
                         <h2 className="mt-1 font-heading text-xl font-semibold text-ink">
-                          {item.name}
+                          {item.itemName}
                         </h2>
                       </div>
                       <p className="shrink-0 text-lg font-semibold text-ink">
@@ -175,9 +176,12 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
                     </p>
                     <div className="flex items-center justify-between gap-3 pt-1">
                       <p className="truncate text-xs text-ink-soft">{item.location}</p>
-                      <span className="rounded-full bg-[#f5ede3] px-2.5 py-1 text-[11px] font-semibold text-ink-soft">
-                        {item.status || "Pending"}
+                      <span className="rounded-full bg-[#f5ede3] px-2.5 py-1 text-[11px] font-semibold capitalize text-ink-soft">
+                        {item.status || "pending"}
                       </span>
+                    </div>
+                    <div className="pt-2">
+                      <MenuItemDialog item={item} />
                     </div>
                   </CardContent>
                 </Card>
