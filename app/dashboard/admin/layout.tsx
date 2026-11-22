@@ -1,15 +1,10 @@
 import { redirect } from "next/navigation"
-
 import { getSession } from "@/lib/core/server"
 
-export default async function AdminDashboardLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
-  if (!session) redirect("/sign-in")
-  if ((session.user.role as string) !== "admin") {
-    redirect(`/dashboard/${session.user.role}`)
-  }
-
+  const role = session?.user.role
+  if (!role) redirect("/sign-in")
+  if (role !== "admin") redirect(`/dashboard/${role}`)
   return children
 }

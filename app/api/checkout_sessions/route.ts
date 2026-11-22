@@ -69,7 +69,7 @@ export async function POST(req: Request) {
         },
       ],
       success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/payment?canceled=1`,
+      cancel_url: `${origin}/payment/cancel`,
     })
 
     if (!session.url) {

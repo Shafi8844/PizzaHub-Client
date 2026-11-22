@@ -106,7 +106,7 @@ export function MenuItemDialog({ item }: { item: MenuItem }) {
                   <Button
                     onClick={() =>
                       router.push(
-                        `/sign-in?redirectTo=${encodeURIComponent(`/order/${item._id}`)}`
+                        `/sign-in?redirectTo=${encodeURIComponent(`/menu/${item._id}`)}`
                       )
                     }
                     className="h-11 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover"

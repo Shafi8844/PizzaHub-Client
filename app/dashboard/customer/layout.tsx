@@ -1,13 +1,10 @@
 import { redirect } from "next/navigation"
-
 import { getSession } from "@/lib/core/server"
 
-export default async function CustomerDashboardLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default async function CustomerLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
-  if (!session) redirect("/sign-in")
-  if (session.user.role !== "customer") redirect(`/dashboard/${session.user.role}`)
-
+  const role = session?.user.role
+  if (!role) redirect("/sign-in")
+  if (role !== "customer") redirect(`/dashboard/${role}`)
   return children
 }

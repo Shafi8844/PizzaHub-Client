@@ -10,8 +10,16 @@ import Logo from "@/components/logo"
 const fieldClassName =
   "mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink shadow-none outline-none transition placeholder:text-[#8a7f74] focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/15"
 
-export default function SignInForm({ redirectTo = "/" }: { redirectTo?: string }) {
-  const [errorMessage, setErrorMessage] = useState("")
+export default function SignInForm({
+  redirectTo = "/",
+  blocked = false,
+}: {
+  redirectTo?: string
+  blocked?: boolean
+}) {
+  const [errorMessage, setErrorMessage] = useState(
+    blocked ? "This account is blocked. Contact support for help." : ""
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
   const router = useRouter()

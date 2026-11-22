@@ -4,7 +4,7 @@ import SignInForm from "@/components/auth/sign-in-form"
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirectTo?: string }>
+  searchParams: Promise<{ redirectTo?: string; blocked?: string }>
 }) {
   const params = await searchParams
   const requestedPath = params.redirectTo ?? "/"
@@ -12,12 +12,13 @@ export default async function SignInPage({
     requestedPath.startsWith("/") && !requestedPath.startsWith("//")
       ? requestedPath
       : "/"
+  const blocked = params.blocked === "1"
 
   return (
     <main className="grid min-h-screen bg-cream text-ink lg:grid-cols-2">
       <AuthBrandPanel />
       <section className="flex items-center justify-center px-5 py-10 sm:px-8 lg:px-12 lg:py-12">
-        <SignInForm redirectTo={redirectTo} />
+        <SignInForm redirectTo={redirectTo} blocked={blocked} />
       </section>
     </main>
   )
