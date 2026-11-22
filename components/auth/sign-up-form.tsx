@@ -114,7 +114,7 @@ export default function SignUpForm() {
         name,
         email,
         password,
-        role,
+        signupRole: role,
         callbackURL: "/",
       })
 
