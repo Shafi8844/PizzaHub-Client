@@ -1,42 +1,65 @@
-import { redirect } from 'next/navigation'
+import Link from "next/link"
+import { redirect } from "next/navigation"
 
-import { stripe } from '@/lib/stripe'
+import { stripe } from "@/lib/stripe"
 
-export default async function Success({ searchParams }:{searchParams:Promise<{session_id?:string}>}) {
+type SuccessPageProps = {
+  searchParams: Promise<{ session_id?: string }>
+}
 
-  const { session_id } = await searchParams
+export default async function SuccessPage({ searchParams }: SuccessPageProps) {
+  const { session_id: sessionId } = await searchParams
 
-  if (!session_id)
-    throw new Error('Please provide a valid session_id (`cs_test_...`)')
-
-  const {
-    status,
-    payment_status,
-    customer_email,
-    metadata,
-    payment_intent
-  } = await stripe.checkout.sessions.retrieve(session_id, {
-    expand: ['line_items', 'payment_intent']
-  })
-
-  if (status === 'open') {
-    return redirect('/')
+  if (!sessionId || !stripe) {
+    redirect("/payment")
   }
 
-  if (status === 'complete') {
-    console.log(status,
-    payment_status,
-    customer_email,
-    metadata,
-    payment_intent)
+  let session
+
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId)
+  } catch {
+    redirect("/payment")
+  }
+
+  if (session.status !== "complete" || session.payment_status !== "paid") {
     return (
-      <section id="success">
-        <p>
-          We appreciate your business! A confirmation email will be sent to{' '}
-          {customer_email?.email}. If you have any questions, please email{' '}
-          <a href="mailto:orders@example.com">orders@example.com</a>.
+      <main className="mx-auto max-w-xl px-6 py-20 text-center">
+        <h1 className="text-2xl font-semibold">Payment not completed</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          This checkout session has not been paid. You can return to the payment
+          page and try again.
         </p>
-      </section>
+        <Link className="mt-6 inline-block underline" href="/payment">
+          Return to payment
+        </Link>
+      </main>
     )
   }
+
+  return (
+    <main className="mx-auto max-w-xl px-6 py-20 text-center">
+      <section id="success">
+        <h1 className="text-2xl font-semibold">Payment successful</h1>
+        <p className="mt-3 text-sm text-muted-foreground">
+          We appreciate your business!
+          {session.customer_details?.email ? (
+            <> A confirmation email will be sent to {session.customer_details.email}.</>
+          ) : (
+            " Your payment is confirmed."
+          )}
+        </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          If you have any questions, please email{" "}
+          <a className="underline" href="mailto:orders@example.com">
+            orders@example.com
+          </a>
+          .
+        </p>
+        <Link className="mt-6 inline-block underline" href="/">
+          Return to PizzaHub
+        </Link>
+      </section>
+    </main>
+  )
 }
