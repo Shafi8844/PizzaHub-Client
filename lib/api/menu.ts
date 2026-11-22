@@ -12,6 +12,7 @@ export type MenuItem = {
   status: MenuItemStatus
   createdAt: string
   vendorName?: string
+  canApprove?: boolean
 }
 
 const BaseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"
@@ -42,7 +43,7 @@ export const getMenuCount = async (query = "", token?: string): Promise<{ count:
     headers: authHeaders(token),
     cache: "no-store",
   })
-  if (!response.ok) return { count: 0 }
+  if (!response.ok) throw new Error(`Unable to load menu count (HTTP ${response.status})`)
   return response.json()
 }
 
@@ -52,6 +53,7 @@ export const getMenuItemById = async (id: string, token?: string): Promise<MenuI
     headers: authHeaders(token),
     cache: "no-store",
   })
-  if (!response.ok) return null
+  if (response.status === 404) return null
+  if (!response.ok) throw new Error(`Unable to load menu item (HTTP ${response.status})`)
   return response.json()
 }

@@ -60,9 +60,11 @@ export function OrderForm({ item }: { item: MenuItem }) {
       if (res?.insertedId) {
         router.push("/dashboard/customer/orders")
         router.refresh()
+      } else {
+        setError("Could not place the order. Please try again.")
       }
-    } catch {
-      setError("Could not place the order. Please try again.")
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Could not place the order. Please try again.")
     } finally {
       setLoading(false)
     }

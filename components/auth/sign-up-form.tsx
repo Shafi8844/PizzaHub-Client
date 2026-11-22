@@ -97,7 +97,26 @@ export default function SignUpForm() {
   const [role, setRole] = useState<Role>("customer")
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false)
   const router = useRouter()
+
+  async function handleGoogleSignUp() {
+    setErrorMessage("")
+    setIsGoogleSubmitting(true)
+    try {
+      const { error } = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard/customer",
+      })
+      if (error) {
+        setErrorMessage(error.message ?? "Google sign-up failed. Please try again.")
+        setIsGoogleSubmitting(false)
+      }
+    } catch {
+      setErrorMessage("Google sign-up failed. Please try again.")
+      setIsGoogleSubmitting(false)
+    }
+  }
 
   async function handleSignUp(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -150,9 +169,11 @@ export default function SignUpForm() {
       <Button
         type="button"
         variant="outline"
+        onClick={handleGoogleSignUp}
+        disabled={isGoogleSubmitting || isSubmitting}
         className="h-11 w-full rounded-xl border-line bg-white text-sm font-medium text-ink hover:bg-[#fffaf5]"
       >
-        Continue with Google
+        {isGoogleSubmitting ? "Connecting to Google..." : "Continue with Google"}
       </Button>
       <div className="my-4 flex items-center gap-3 text-xs text-ink-soft">
         <span className="h-px flex-1 bg-line" />

@@ -6,7 +6,6 @@ import Footer from "@/components/footer/footer"
 import Nav from "@/components/navbar/nav"
 import { Card, CardContent } from "@/components/ui/card"
 import { getSession } from "@/lib/core/server"
-import { stripe } from "@/lib/stripe"
 
 type SuccessPageProps = {
   searchParams: Promise<{ session_id?: string }>
@@ -14,43 +13,10 @@ type SuccessPageProps = {
 
 export default async function SuccessPage({ searchParams }: SuccessPageProps) {
   const { session_id: sessionId } = await searchParams
-
-  if (!sessionId || !stripe) {
-    redirect("/payment")
-  }
-
   const userSession = await getSession()
   if (!userSession) redirect("/sign-in")
   if (userSession.user.role !== "vendor") redirect(`/dashboard/${userSession.user.role}`)
-
-  let session
-
-  try {
-    session = await stripe.checkout.sessions.retrieve(sessionId)
-  } catch {
-    redirect("/payment")
-  }
-
-  if (session.metadata?.userId !== userSession.user.id) {
-    redirect("/dashboard/vendor/subscription")
-  }
-
-  if (session.status !== "complete" || session.payment_status !== "paid") {
-    return (
-      <main className="mx-auto max-w-xl px-6 py-20 text-center">
-        <h1 className="text-2xl font-semibold">Payment not completed</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
-          This checkout session has not been paid. You can return to the payment
-          page and try again.
-        </p>
-        <Link className="mt-6 inline-block underline" href="/payment">
-          Return to payment
-        </Link>
-      </main>
-    )
-  }
-
-  const customerEmail = session.customer_details?.email ?? session.customer_email
+  if (!sessionId) redirect("/dashboard/vendor/subscription")
 
   return (
     <div className="min-h-screen bg-cream text-ink">
@@ -65,16 +31,10 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               Vendor subscription
             </p>
             <h1 className="mt-3 font-heading text-3xl font-semibold tracking-[-0.03em] text-ink sm:text-4xl">
-              Payment successful
+              Payment submitted
             </h1>
             <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-              Your Premium subscription payment is confirmed.
-              {customerEmail ? (
-                <> A receipt will be sent to <span className="font-medium text-ink">{customerEmail}</span>.</>
-              ) : null}
-            </p>
-            <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-              Premium access will be activated securely as Stripe confirms your subscription.
+              Your Stripe checkout was completed. Premium access is activated only after verified Stripe webhook confirmation on the server.
             </p>
             <Link
               href="/dashboard/vendor/subscription"
@@ -83,9 +43,6 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
               Return to subscription
               <ArrowRight className="size-4" aria-hidden />
             </Link>
-            <p className="mt-6 text-xs text-ink-soft">
-              Need help? <a className="underline" href="mailto:orders@example.com">Contact support</a>
-            </p>
           </CardContent>
         </Card>
       </main>

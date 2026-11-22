@@ -10,7 +10,7 @@ PizzaHub is a responsive pizza ordering platform where customers can browse loca
 
 ## Features
 
-- Better Auth email and password sign-in with customer and vendor registration
+- Better Auth email, password, and Google sign-in with customer and vendor registration
 - Role-specific customer, vendor, and admin dashboards
 - Searchable menu browsing and vendor menu management
 - Menu image uploads to ImgBB with file type and size validation
@@ -44,6 +44,8 @@ Set these values in `pizzaHub-client/.env`:
 | `MONGO_DB_URI` | MongoDB connection string |
 | `BETTER_AUTH_SECRET` | Secret used by Better Auth; use a long random value |
 | `BETTER_AUTH_URL` | Client origin, usually `http://localhost:3000` |
+| `GOOGLE_CLIENT_ID` | Google OAuth web client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth web client secret |
 | `NEXT_PUBLIC_APP_URL` | Public client URL used for Stripe redirects |
 | `NEXT_PUBLIC_API_URL` | Backend URL, usually `http://localhost:5050` |
 | `STRIPE_SECRET_KEY` | Stripe secret key; use a test key locally |
@@ -63,7 +65,7 @@ Set these values in `backend/.env`:
 | Variable | Purpose |
 | --- | --- |
 | `MONGO_DB_URI` | MongoDB connection string for the same PizzaHub database |
-| `BETTER_AUTH_SECRET` | Must exactly match the client value; used to verify short-lived API JWTs |
+| `BETTER_AUTH_URL` | Client origin used to retrieve Better Auth's JWKS, usually `http://localhost:3000` |
 | `STRIPE_SECRET_KEY` | Stripe secret key matching the client environment |
 | `STRIPE_WEBHOOK_SECRET` | Signing secret for the Stripe webhook endpoint |
 | `PORT` | Backend port; defaults to `5050` |
@@ -115,9 +117,9 @@ npm start
 
 - Never commit `.env` files or paste live credentials into source code.
 - Stripe secret and webhook keys belong on the server only. Rotate any key that has been exposed.
-- Google OAuth is not wired into the current app. Configure its provider and credentials before enabling Google sign-in.
+- Google OAuth uses `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` from the client `.env` file. Add `http://localhost:3000/api/auth/callback/google` to the Google OAuth client's authorized redirect URIs; production needs its own callback URL.
 - A live website URL and production deployment configuration have not been supplied.
-- Express data endpoints verify short-lived HS256 JWTs minted from Better Auth sessions by the Next.js proxy. Roles and record ownership are checked against the current MongoDB user record on each protected request.
+- Express data endpoints verify short-lived Better Auth JWTs against the client's JWKS. Roles and record ownership are checked against the current MongoDB user record on each protected request.
 - Admin access must be provisioned securely and never through the public sign-up form.
 
 ## Menu search and sorting
@@ -126,7 +128,7 @@ The Express menu endpoint accepts `search`, `category`, `location`, `status`, an
 
 ## API authentication
 
-The Next.js server reads the signed Better Auth session cookie and mints a five-minute HS256 JWT with issuer `pizzahub-client` and audience `pizzahub-api`. Browser mutations go through the same-origin `/api/backend/*` proxy, which attaches the token server-side. Express verifies its signature and expiry using `BETTER_AUTH_SECRET`, then reloads the user from MongoDB so current role and blocked status are authoritative. Public menu reads remain available without a token and return approved items only. Protected routes return `401` for missing or invalid authentication and `403` for a valid user without the required role or ownership.
+The Next.js server reads the Better Auth session cookie and requests a five-minute JWT from Better Auth. Browser mutations go through the same-origin `/api/backend/*` proxy, which attaches the token server-side. Express verifies the token signature using the public keys at `BETTER_AUTH_URL/api/auth/jwks`, then reloads the user from MongoDB so current role and blocked status are authoritative. Public menu reads remain available without a token and return approved items only. Protected routes return `401` for missing or invalid authentication and `403` for a valid user without the required role or ownership.
 
 ## Repository layout
 

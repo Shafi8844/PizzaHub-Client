@@ -22,6 +22,7 @@ export function AdminUsersTable({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = React.useState("")
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -32,13 +33,20 @@ export function AdminUsersTable({
 
   async function toggleBlock(user: User) {
     setLoadingId(user._id)
+    setErrorMessage("")
     try {
-      await fetch(`/api/backend/users/${user._id}`, {
+      const response = await fetch(`/api/backend/users/${user._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blocked: !user.blocked }),
       })
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(result?.error ?? "User status could not be updated")
+      }
       router.refresh()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "User status could not be updated")
     } finally {
       setLoadingId(null)
     }
@@ -47,6 +55,7 @@ export function AdminUsersTable({
   return (
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
+        {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
         <div className="flex flex-col gap-3 border-b border-line p-4 sm:flex-row">
           <Input
             defaultValue={search}

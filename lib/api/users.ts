@@ -18,6 +18,6 @@ export async function getUsers(query = "", token?: string): Promise<User[]> {
     headers,
     cache: "no-store",
   })
-  if (!response.ok) return []
+  if (!response.ok) throw new Error(`Unable to load users (HTTP ${response.status})`)
   return response.json()
 }

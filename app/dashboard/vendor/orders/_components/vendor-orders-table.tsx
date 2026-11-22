@@ -17,17 +17,25 @@ const statusStyles: Record<OrderStatus, string> = {
 export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] }) {
   const router = useRouter()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = React.useState("")
 
   async function updateStatus(order: Order, status: "accepted" | "rejected") {
     if (order.status !== "pending") return
     setLoadingId(order._id)
+    setErrorMessage("")
     try {
-      await fetch(`/api/backend/orders/${order._id}`, {
+      const response = await fetch(`/api/backend/orders/${order._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       })
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(result?.error ?? "Order status could not be updated")
+      }
       router.refresh()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Order status could not be updated")
     } finally {
       setLoadingId(null)
     }
@@ -36,6 +44,7 @@ export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] })
   return (
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
+        {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>

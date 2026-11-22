@@ -14,19 +14,30 @@ if (!mongoUri) {
 const client = new MongoClient(mongoUri)
 const db = client.db("pizzahub")
 
+// Better Auth signs JWTs with `issuer` set to this value. A trailing slash would
+// make the token issuer differ from the API's expected issuer and every request
+// would be rejected, so normalize it once here.
+const baseURL = process.env.BETTER_AUTH_URL?.replace(/\/+$/, "")
+
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL,
   database: mongodbAdapter(db, {
     client,
   }),
   emailAndPassword: {
     enabled: true,
   },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+  },
   plugins: [
     admin(),
     jwt({
       jwt: {
-        issuer: process.env.BETTER_AUTH_URL,
+        issuer: baseURL,
         audience: "pizzahub-api",
         expirationTime: "5m",
         definePayload: ({ user }) => ({
@@ -46,7 +57,11 @@ export const auth = betterAuth({
           if (signupRole === "customer" || signupRole === "vendor") {
             return { data: { ...safeUser, role: signupRole } }
           }
-          return { data: safeUser }
+          const validRole = typeof user.role === "string" &&
+            ["customer", "vendor", "admin"].includes(user.role)
+            ? user.role
+            : "customer"
+          return { data: { ...safeUser, role: validRole } }
         },
       },
     },

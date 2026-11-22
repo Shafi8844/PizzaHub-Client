@@ -38,7 +38,10 @@ export async function createOrder(orderData: Record<string, unknown>) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(orderData),
   })
-  if (!response.ok) throw new Error("Failed to create order")
+  if (!response.ok) {
+    const result = (await response.json().catch(() => null)) as { error?: string } | null
+    throw new Error(result?.error ?? "Failed to create order")
+  }
   return response.json()
 }
 
@@ -47,7 +50,7 @@ export async function getOrders(query = "", token?: string): Promise<Order[]> {
     headers: authHeaders(token),
     cache: "no-store",
   })
-  if (!response.ok) return []
+  if (!response.ok) throw new Error(`Unable to load orders (HTTP ${response.status})`)
   return response.json()
 }
 
@@ -56,6 +59,6 @@ export async function getOrdersCount(query = "", token?: string): Promise<{ coun
     headers: authHeaders(token),
     cache: "no-store",
   })
-  if (!response.ok) return { count: 0 }
+  if (!response.ok) throw new Error(`Unable to load order count (HTTP ${response.status})`)
   return response.json()
 }

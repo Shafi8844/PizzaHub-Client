@@ -18,17 +18,25 @@ const statusStyles: Record<OrderStatus, string> = {
 export function CustomerOrdersTable({ initialOrders }: { initialOrders: Order[] }) {
   const router = useRouter()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = React.useState("")
 
   async function cancelOrder(order: Order) {
     if (order.status !== "pending") return
     setLoadingId(order._id)
+    setErrorMessage("")
     try {
-      await fetch(`/api/backend/orders/${order._id}`, {
+      const response = await fetch(`/api/backend/orders/${order._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "cancelled" }),
       })
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(result?.error ?? "Order could not be cancelled")
+      }
       router.refresh()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Order could not be cancelled")
     } finally {
       setLoadingId(null)
     }
@@ -37,6 +45,7 @@ export function CustomerOrdersTable({ initialOrders }: { initialOrders: Order[] 
   return (
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
+        {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>

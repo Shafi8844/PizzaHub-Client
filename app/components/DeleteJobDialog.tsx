@@ -19,32 +19,42 @@ import { useRouter } from "next/navigation"
 
 
 export function DeleteJobDialog({menu}:{menu:MenuItem}) {
-    
     const [open,setOpen]=useState(false);
+    const [errorMessage,setErrorMessage]=useState("");
+    const [isDeleting,setIsDeleting]=useState(false);
     const router = useRouter();
 
-    const handleDelete = async () => {;
-        const response = await deleteMenuItem(menu._id);
-        if(response.deletedCount){
+    const handleDelete = async () => {
+        setErrorMessage("");
+        setIsDeleting(true);
+        try {
+          const response = await deleteMenuItem(menu._id);
+          if(response.deletedCount){
             setOpen(false);
             router.refresh();
+          } else {
+            setErrorMessage(response.error ?? "Menu item could not be deleted");
+          }
+        } catch {
+          setErrorMessage("Menu item could not be deleted. Please try again.");
+        } finally {
+          setIsDeleting(false);
         }
-        console.log("delete response:", menu._id, response);
     }
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger render={<Button variant="outline"><Trash2Icon /></Button>} />
+    <AlertDialog open={open} onOpenChange={(nextOpen) => { setOpen(nextOpen); if (!nextOpen) setErrorMessage("") }}>
+      <AlertDialogTrigger render={<Button variant="outline" aria-label={`Delete ${menu.itemName}`}><Trash2Icon /></Button>} />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete {menu.itemName}?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your
-            account from our servers.
+              This will permanently remove this menu item from PizzaHub.
           </AlertDialogDescription>
         </AlertDialogHeader>
+          {errorMessage ? <p role="alert" className="rounded-lg bg-brand-tint px-3 py-2 text-sm text-brand">{errorMessage}</p> : null}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-brand text-white hover:bg-brand-hover">Delete Item</AlertDialogAction>
+          <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-brand text-white hover:bg-brand-hover">{isDeleting ? "Deleting..." : "Delete Item"}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

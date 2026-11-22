@@ -15,18 +15,12 @@ export type Transaction = {
 }
 
 export async function getTransactions(token: string): Promise<Transaction[]> {
-  try {
-    const response = await fetch(`${BaseUrl}/transactions`, {
-      headers: { authorization: `Bearer ${token}` },
-      cache: "no-store",
-    })
-    if (!response.ok) {
-      console.error(`Unable to load transactions (HTTP ${response.status})`)
-      return []
-    }
-    return response.json()
-  } catch (error) {
-    console.error("Unable to reach the transactions API:", error)
-    return []
+  const response = await fetch(`${BaseUrl}/transactions`, {
+    headers: { authorization: `Bearer ${token}` },
+    cache: "no-store",
+  })
+  if (!response.ok) {
+    throw new Error(`Unable to load transactions (HTTP ${response.status})`)
   }
+  return response.json()
 }

@@ -30,6 +30,7 @@ export function AdminMenuTable({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
+  const [errorMessage, setErrorMessage] = React.useState("")
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -40,13 +41,20 @@ export function AdminMenuTable({
 
   async function patchItem(id: string, body: Record<string, unknown>) {
     setLoadingId(id)
+    setErrorMessage("")
     try {
-      await fetch(`/api/backend/menu/${id}`, {
+      const response = await fetch(`/api/backend/menu/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       })
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(result?.error ?? "Menu item could not be updated")
+      }
       router.refresh()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Menu item could not be updated")
     } finally {
       setLoadingId(null)
     }
@@ -54,9 +62,16 @@ export function AdminMenuTable({
 
   async function deleteItem(id: string) {
     setLoadingId(id)
+    setErrorMessage("")
     try {
-      await fetch(`/api/backend/menu/${id}`, { method: "DELETE" })
+      const response = await fetch(`/api/backend/menu/${id}`, { method: "DELETE" })
+      if (!response.ok) {
+        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        throw new Error(result?.error ?? "Menu item could not be deleted")
+      }
       router.refresh()
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Menu item could not be deleted")
     } finally {
       setLoadingId(null)
     }
@@ -65,6 +80,7 @@ export function AdminMenuTable({
   return (
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
+        {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
         <div className="flex flex-col gap-3 border-b border-line p-4 sm:flex-row">
           <Input
             defaultValue={search}
@@ -111,7 +127,14 @@ export function AdminMenuTable({
                       </div>
                     </div>
                   </td>
-                  <td className="px-5 py-4 text-sm text-ink-soft">{item.vendorId || "—"}</td>
+                  <td className="px-5 py-4 text-sm text-ink-soft">
+                    {item.vendorName || item.vendorId || "—"}
+                    {item.status === "pending" && item.canApprove === false ? (
+                      <p className="mt-1 max-w-48 text-xs text-brand">
+                        Free plan limit reached. Vendor must upgrade to Premium before approval.
+                      </p>
+                    ) : null}
+                  </td>
                   <td className="px-5 py-4">
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[item.status] ?? statusStyles.pending}`}>
                       {item.status}
@@ -119,7 +142,7 @@ export function AdminMenuTable({
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap justify-end gap-2">
-                      <Button size="sm" disabled={loadingId === item._id} onClick={() => patchItem(item._id, { status: "approved" })} className="rounded-lg bg-leaf text-white hover:bg-leaf/90">Approve</Button>
+                      <Button size="sm" disabled={loadingId === item._id || (item.status === "pending" && item.canApprove === false)} title={item.status === "pending" && item.canApprove === false ? "The vendor has reached the Free plan item limit" : undefined} onClick={() => patchItem(item._id, { status: "approved" })} className="rounded-lg bg-leaf text-white hover:bg-leaf/90">Approve</Button>
                       <Button size="sm" variant="outline" disabled={loadingId === item._id} onClick={() => patchItem(item._id, { status: "rejected" })} className="rounded-lg border-brand/30 text-brand hover:bg-brand-tint">Reject</Button>
                       <Button size="sm" variant="outline" disabled={loadingId === item._id} onClick={() => patchItem(item._id, { status: "inactive" })} className="rounded-lg border-line text-ink-soft hover:bg-[#f5ede3]">Inactive</Button>
                       <Button size="sm" variant="outline" disabled={loadingId === item._id} onClick={() => deleteItem(item._id)} className="rounded-lg border-brand/30 text-brand hover:bg-brand-tint">Delete</Button>
