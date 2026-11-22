@@ -41,7 +41,7 @@ export function AdminMenuTable({
   async function patchItem(id: string, body: Record<string, unknown>) {
     setLoadingId(id)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"}/menu/${id}`, {
+      await fetch(`/api/backend/menu/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -55,7 +55,7 @@ export function AdminMenuTable({
   async function deleteItem(id: string) {
     setLoadingId(id)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"}/menu/${id}`, { method: "DELETE" })
+      await fetch(`/api/backend/menu/${id}`, { method: "DELETE" })
       router.refresh()
     } finally {
       setLoadingId(null)

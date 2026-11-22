@@ -33,7 +33,7 @@ export function AdminUsersTable({
   async function toggleBlock(user: User) {
     setLoadingId(user._id)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"}/users/${user._id}`, {
+      await fetch(`/api/backend/users/${user._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blocked: !user.blocked }),

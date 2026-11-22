@@ -1,4 +1,5 @@
 import { getMenuItems } from "@/lib/api/menu"
+import { createBackendToken } from "@/lib/api/backend-token"
 import { DashboardShell } from "../../_components/dashboard-shell"
 import { AdminMenuTable } from "./_components/admin-menu-table"
 
@@ -14,7 +15,8 @@ const AdminMenuItemsPage = async ({ searchParams }: { searchParams: SearchParams
   const query = new URLSearchParams()
   if (search) query.set("search", search)
   if (status && status !== "all") query.set("status", status)
-  const items = await getMenuItems(query.toString())
+  const token = await createBackendToken()
+  const items = await getMenuItems(query.toString(), token ?? undefined)
 
   return (
     <DashboardShell

@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { getOrders } from "@/lib/api/order"
+import { createBackendToken } from "@/lib/api/backend-token"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { DashboardShell, StatCard } from "../_components/dashboard-shell"
@@ -7,7 +8,8 @@ import { DashboardShell, StatCard } from "../_components/dashboard-shell"
 const CustomerDashboardPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
   const customerId = session?.user?.id
-  const orders = customerId ? await getOrders(`customerId=${customerId}`) : []
+  const token = await createBackendToken()
+  const orders = customerId ? await getOrders("", token ?? undefined) : []
 
   const pending = orders.filter((o) => o.status === "pending").length
   const accepted = orders.filter((o) => o.status === "accepted").length

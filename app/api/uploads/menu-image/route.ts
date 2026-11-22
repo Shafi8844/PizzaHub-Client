@@ -6,6 +6,20 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"])
 
 export async function POST(request: Request) {
+  const requestOrigin = request.headers.get("origin")
+  const appOrigin = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL
+  let sameOrigin = false
+  try {
+    sameOrigin = Boolean(
+      requestOrigin && appOrigin && new URL(requestOrigin).origin === new URL(appOrigin).origin
+    )
+  } catch {
+    sameOrigin = false
+  }
+  if (!sameOrigin) {
+    return NextResponse.json({ error: "Request origin is not allowed" }, { status: 403 })
+  }
+
   const session = await getSession()
   if (!session) {
     return NextResponse.json({ error: "Sign in to upload a menu image" }, { status: 401 })

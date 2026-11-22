@@ -15,13 +15,7 @@ const statusStyles: Record<OrderStatus, string> = {
   cancelled: "bg-[#f3ece3] text-ink-soft",
 }
 
-export function CustomerOrdersTable({
-  initialOrders,
-  customerId,
-}: {
-  initialOrders: Order[]
-  customerId: string
-}) {
+export function CustomerOrdersTable({ initialOrders }: { initialOrders: Order[] }) {
   const router = useRouter()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
 
@@ -29,10 +23,10 @@ export function CustomerOrdersTable({
     if (order.status !== "pending") return
     setLoadingId(order._id)
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"}/orders/${order._id}`, {
+      await fetch(`/api/backend/orders/${order._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "cancelled", customerId }),
+        body: JSON.stringify({ status: "cancelled" }),
       })
       router.refresh()
     } finally {

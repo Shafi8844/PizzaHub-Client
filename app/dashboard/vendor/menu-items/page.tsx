@@ -6,6 +6,7 @@ import { headers } from "next/headers"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getMenuItems, type MenuItem, type MenuItemStatus } from "@/lib/api/menu"
+import { createBackendToken } from "@/lib/api/backend-token"
 import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
 import { auth } from "@/lib/auth"
 
@@ -19,7 +20,8 @@ const statusStyles: Record<MenuItemStatus, string> = {
 const MenuItemsPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
   const vendorId = session?.user?.id
-  const menu = vendorId ? await getMenuItems(`vendorId=${vendorId}`) : []
+  const token = await createBackendToken()
+  const menu = vendorId ? await getMenuItems("", token ?? undefined) : []
 
   return (
     <div className="min-h-screen bg-cream px-5 py-6 sm:px-8 lg:px-10 lg:py-8">

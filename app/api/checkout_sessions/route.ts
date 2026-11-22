@@ -5,6 +5,20 @@ import { getSession } from "@/lib/core/server"
 
 export async function POST(req: Request) {
   try {
+    const requestOrigin = req.headers.get("origin")
+    const appOrigin = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL
+    let sameOrigin = false
+    try {
+      sameOrigin = Boolean(
+        requestOrigin && appOrigin && new URL(requestOrigin).origin === new URL(appOrigin).origin
+      )
+    } catch {
+      sameOrigin = false
+    }
+    if (!sameOrigin) {
+      return NextResponse.json({ error: "Request origin is not allowed" }, { status: 403 })
+    }
+
     if (!stripe) {
       return NextResponse.json(
         { error: "STRIPE_SECRET_KEY is not configured" },

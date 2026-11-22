@@ -1,5 +1,3 @@
-const BaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"
-
 export type NewMenuItem = {
   vendorId: string
   itemName: string
@@ -13,7 +11,7 @@ export type NewMenuItem = {
 }
 
 export const createmenu = async (menuData: NewMenuItem) => {
-  const res = await fetch(`${BaseUrl}/menu`, {
+  const res = await fetch("/api/backend/menu", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -24,7 +22,7 @@ export const createmenu = async (menuData: NewMenuItem) => {
 }
 
 export const deleteMenuItem = async (menuId: string) => {
-  const res = await fetch(`${BaseUrl}/menu/${menuId}`, {
+  const res = await fetch(`/api/backend/menu/${menuId}`, {
     method: "DELETE",
   })
   return res.json()

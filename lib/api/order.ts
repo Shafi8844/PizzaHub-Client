@@ -1,5 +1,15 @@
 const BaseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"
 
+function ordersApiUrl(path: string) {
+  return typeof window === "undefined" ? `${BaseUrl}${path}` : `/api/backend${path}`
+}
+
+function authHeaders(token?: string) {
+  const headers = new Headers()
+  if (token) headers.set("authorization", `Bearer ${token}`)
+  return headers
+}
+
 export type OrderStatus = "pending" | "accepted" | "rejected" | "cancelled"
 
 export type Order = {
@@ -23,7 +33,7 @@ export type Order = {
 }
 
 export async function createOrder(orderData: Record<string, unknown>) {
-  const response = await fetch(`${BaseUrl}/orders`, {
+  const response = await fetch(ordersApiUrl("/orders"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(orderData),
@@ -32,16 +42,18 @@ export async function createOrder(orderData: Record<string, unknown>) {
   return response.json()
 }
 
-export async function getOrders(query = ""): Promise<Order[]> {
-  const response = await fetch(`${BaseUrl}/orders${query ? `?${query}` : ""}`, {
+export async function getOrders(query = "", token?: string): Promise<Order[]> {
+  const response = await fetch(ordersApiUrl(`/orders${query ? `?${query}` : ""}`), {
+    headers: authHeaders(token),
     cache: "no-store",
   })
   if (!response.ok) return []
   return response.json()
 }
 
-export async function getOrdersCount(query = ""): Promise<{ count: number }> {
-  const response = await fetch(`${BaseUrl}/orders/count${query ? `?${query}` : ""}`, {
+export async function getOrdersCount(query = "", token?: string): Promise<{ count: number }> {
+  const response = await fetch(ordersApiUrl(`/orders/count${query ? `?${query}` : ""}`), {
+    headers: authHeaders(token),
     cache: "no-store",
   })
   if (!response.ok) return { count: 0 }

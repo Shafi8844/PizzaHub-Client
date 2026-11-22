@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { getMenuItems } from "@/lib/api/menu"
 import { getOrders } from "@/lib/api/order"
+import { createBackendToken } from "@/lib/api/backend-token"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { DashboardShell, StatCard } from "../_components/dashboard-shell"
@@ -8,10 +9,11 @@ import { DashboardShell, StatCard } from "../_components/dashboard-shell"
 const VendorDashBoardPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
   const vendorId = session?.user?.id
+  const token = await createBackendToken()
 
   const [menu, orders] = await Promise.all([
-    vendorId ? getMenuItems(`vendorId=${vendorId}`) : Promise.resolve([]),
-    vendorId ? getOrders(`vendorId=${vendorId}`) : Promise.resolve([]),
+    vendorId ? getMenuItems("", token ?? undefined) : Promise.resolve([]),
+    vendorId ? getOrders("", token ?? undefined) : Promise.resolve([]),
   ])
 
   const active = menu.filter((i) => i.status === "approved").length

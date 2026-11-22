@@ -11,8 +11,11 @@ export type User = {
   premium?: boolean
 }
 
-export async function getUsers(query = ""): Promise<User[]> {
+export async function getUsers(query = "", token?: string): Promise<User[]> {
+  const headers = new Headers()
+  if (token) headers.set("authorization", `Bearer ${token}`)
   const response = await fetch(`${BaseUrl}/users${query ? `?${query}` : ""}`, {
+    headers,
     cache: "no-store",
   })
   if (!response.ok) return []

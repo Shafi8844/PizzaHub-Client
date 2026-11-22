@@ -1,4 +1,5 @@
 import { getUsers } from "@/lib/api/users"
+import { createBackendToken } from "@/lib/api/backend-token"
 import { DashboardShell } from "../../_components/dashboard-shell"
 import { AdminUsersTable } from "./_components/admin-users-table"
 
@@ -15,7 +16,8 @@ const AdminUsersPage = async ({ searchParams }: { searchParams: SearchParams }) 
   const query = new URLSearchParams()
   if (search) query.set("search", search)
   if (role && role !== "all") query.set("role", role)
-  const users = await getUsers(query.toString())
+  const token = await createBackendToken()
+  const users = await getUsers(query.toString(), token ?? undefined)
 
   return (
     <DashboardShell

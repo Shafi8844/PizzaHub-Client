@@ -25,6 +25,22 @@ async function proxy(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "API route not found" }, { status: 404 })
   }
 
+  if (["POST", "PATCH", "DELETE"].includes(method)) {
+    const origin = request.headers.get("origin")
+    const appOrigin = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL
+    let originAllowed = false
+    try {
+      originAllowed = Boolean(
+        origin && appOrigin && new URL(origin).origin === new URL(appOrigin).origin
+      )
+    } catch {
+      originAllowed = false
+    }
+    if (!originAllowed) {
+      return NextResponse.json({ error: "Request origin is not allowed" }, { status: 403 })
+    }
+  }
+
   const backendUrl = process.env.NEXT_PUBLIC_API_URL
   if (!backendUrl) {
     return NextResponse.json({ error: "Backend API is not configured" }, { status: 503 })

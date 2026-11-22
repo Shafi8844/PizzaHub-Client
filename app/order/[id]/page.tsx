@@ -7,6 +7,7 @@ import Nav from "@/components/navbar/nav"
 import Footer from "@/components/footer/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getMenuItemById } from "@/lib/api/menu"
+import { createBackendToken } from "@/lib/api/backend-token"
 import { getSession } from "@/lib/core/server"
 import { OrderForm } from "./_components/order-form"
 
@@ -22,7 +23,8 @@ const OrderPage = async ({ params }: Props) => {
     redirect(`/dashboard/${session.user.role}`)
   }
 
-  const item = await getMenuItemById(id)
+  const token = await createBackendToken()
+  const item = await getMenuItemById(id, token ?? undefined)
   if (!item || item.status !== "approved") notFound()
   if (item.vendorId === session.user.id) redirect("/browse-menu")
 

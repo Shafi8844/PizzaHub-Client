@@ -1,12 +1,16 @@
 import { getMenuCount, getMenuItems } from "@/lib/api/menu"
 import { getUsers } from "@/lib/api/users"
+import { createBackendToken } from "@/lib/api/backend-token"
+import { getTransactions } from "@/lib/api/transactions"
 import { DashboardShell, StatCard } from "../_components/dashboard-shell"
 
 const AdminDashboardPage = async () => {
-  const [users, items, pendingItems] = await Promise.all([
-    getUsers(),
-    getMenuItems(),
-    getMenuCount("status=pending"),
+  const token = await createBackendToken()
+  const [users, items, pendingItems, transactions] = await Promise.all([
+    getUsers("", token ?? undefined),
+    getMenuItems("", token ?? undefined),
+    getMenuCount("status=pending", token ?? undefined),
+    token ? getTransactions(token) : Promise.resolve([]),
   ])
 
   const vendors = users.filter((u) => u.role === "vendor").length
@@ -24,7 +28,7 @@ const AdminDashboardPage = async () => {
         <StatCard label="Total Customers" value={customers} />
         <StatCard label="Total Menu Items" value={items.length} />
         <StatCard label="Pending Menu Items" value={pendingItems.count} />
-        <StatCard label="Total Transactions" value="—" hint="Connect payments collection/count to populate." />
+        <StatCard label="Total Transactions" value={transactions.length} />
       </div>
     </DashboardShell>
   )

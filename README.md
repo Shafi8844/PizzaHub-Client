@@ -63,9 +63,11 @@ Set these values in `backend/.env`:
 | Variable | Purpose |
 | --- | --- |
 | `MONGO_DB_URI` | MongoDB connection string for the same PizzaHub database |
+| `BETTER_AUTH_SECRET` | Must exactly match the client value; used to verify short-lived API JWTs |
 | `STRIPE_SECRET_KEY` | Stripe secret key matching the client environment |
 | `STRIPE_WEBHOOK_SECRET` | Signing secret for the Stripe webhook endpoint |
 | `PORT` | Backend port; defaults to `5050` |
+| `CORS_ORIGINS` | Comma-separated allowed frontend origins, e.g. `http://localhost:3000` |
 
 ### 3. Start both services
 
@@ -115,12 +117,16 @@ npm start
 - Stripe secret and webhook keys belong on the server only. Rotate any key that has been exposed.
 - Google OAuth is not wired into the current app. Configure its provider and credentials before enabling Google sign-in.
 - A live website URL and production deployment configuration have not been supplied.
-- Before production, protect every backend data endpoint with verified authentication, role checks, and ownership checks. The current Express data routes still need that security work; dashboard visibility alone is not API authorization.
+- Express data endpoints verify short-lived HS256 JWTs minted from Better Auth sessions by the Next.js proxy. Roles and record ownership are checked against the current MongoDB user record on each protected request.
 - Admin access must be provisioned securely and never through the public sign-up form.
 
 ## Menu search and sorting
 
 The Express menu endpoint accepts `search`, `category`, `location`, `status`, and `sort` query parameters. `sort` supports `newest`, `price-asc`, and `price-desc`; the public browse page always requests `status=approved`. Search text is treated literally so characters in a query are not interpreted as regular-expression operators.
+
+## API authentication
+
+The Next.js server reads the signed Better Auth session cookie and mints a five-minute HS256 JWT with issuer `pizzahub-client` and audience `pizzahub-api`. Browser mutations go through the same-origin `/api/backend/*` proxy, which attaches the token server-side. Express verifies its signature and expiry using `BETTER_AUTH_SECRET`, then reloads the user from MongoDB so current role and blocked status are authoritative. Public menu reads remain available without a token and return approved items only. Protected routes return `401` for missing or invalid authentication and `403` for a valid user without the required role or ownership.
 
 ## Repository layout
 
