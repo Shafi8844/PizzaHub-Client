@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { createmenu, type NewMenuItem } from "@/lib/actions/menu"
 import { useSession } from "@/lib/auth-client"
+import { getVendorMenuCount } from "@/lib/api/menu"
 
 const inputClassName =
   "h-11 rounded-xl border-line bg-white px-3.5 text-sm text-ink placeholder:text-[#9a8e82] focus-visible:border-brand focus-visible:ring-brand/15"
@@ -34,10 +35,18 @@ const AddNewItems = () => {
   const { data: session } = useSession()
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
 
-    const payload: NewMenuItem = {
+    if(session?.user && session?.user?.role === "vendor") {
+      const countResult = await getVendorMenuCount (`vendorId=${session.user.id}`)
+      if (countResult.count >= 3) {
+        router.push("/payment")
+        return
+      }
+      else{
+        const payload: NewMenuItem = {
       vendorId: session?.user?.id ?? "",
       itemName: String(formData.get("itemName") ?? "").trim(),
       category: String(formData.get("category") ?? "").trim(),
@@ -54,6 +63,9 @@ const AddNewItems = () => {
       router.push("/dashboard/vendor/menu-items")
       router.refresh()
     }
+      }
+    }
+    
   }
 
   return (

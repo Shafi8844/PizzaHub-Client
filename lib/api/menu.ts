@@ -11,6 +11,12 @@ export const getMenuItems = async (query = ""): Promise<MenuItem[]> => {
   }
   return response.json()
 }
+
+export const getVendorMenuCount = async (vendorId: string): Promise<{count: number}> => {
+  const response = await fetch(`${BaseURL}/menu/count?${vendorId}`)
+  return response.json()
+}
+
 export const getMenuItemById = async (id: string): Promise<MenuItem> => {
   const response = await fetch(`${BaseURL}/menu/${id}`)
   return response.json()
