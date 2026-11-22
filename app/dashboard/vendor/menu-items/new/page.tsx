@@ -33,18 +33,47 @@ const labelClassName = "text-[13px] font-semibold text-ink"
 const AddNewItems = () => {
   const router = useRouter()
   const { data: session } = useSession()
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [errorMessage, setErrorMessage] = React.useState("")
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-
     event.preventDefault()
+    setErrorMessage("")
+    setIsSubmitting(true)
     const formData = new FormData(event.currentTarget)
 
-    if (session?.user && session.user.role === "vendor") {
-      const countResult = await getMenuCount(`vendorId=${session.user.id}&status=approved`)
-      if (countResult.count >= 3) {
+    try {
+      if (!session?.user || session.user.role !== "vendor") {
+        throw new Error("Sign in with a vendor account to add menu items")
+      }
+
+      const selectedImage = formData.get("image")
+      if (!(selectedImage instanceof File) || selectedImage.size === 0) {
+        throw new Error("Choose an image for this menu item")
+      }
+
+      const countResult = await getMenuCount(
+        `vendorId=${encodeURIComponent(session.user.id)}&status=approved`
+      )
+      if (!session.user.premium && countResult.count >= 3) {
         router.push("/dashboard/vendor/subscription")
         return
       }
+
+      const uploadForm = new FormData()
+      uploadForm.set("image", selectedImage)
+      const uploadResponse = await fetch("/api/uploads/menu-image", {
+        method: "POST",
+        body: uploadForm,
+      })
+      const uploadResult = (await uploadResponse.json()) as {
+        url?: string
+        error?: string
+      }
+      if (!uploadResponse.ok || !uploadResult.url) {
+        throw new Error(uploadResult.error ?? "Image upload failed")
+      }
+
       const payload: NewMenuItem = {
         vendorId: session.user.id,
         itemName: String(formData.get("itemName") ?? "").trim(),
@@ -52,7 +81,7 @@ const AddNewItems = () => {
         description: String(formData.get("description") ?? "").trim(),
         price: Number(formData.get("price") ?? 0),
         location: String(formData.get("location") ?? "").trim(),
-        images: [String(formData.get("image") ?? "").trim()].filter(Boolean),
+        images: [uploadResult.url],
         status: "pending",
         createdAt: new Date().toISOString(),
       }
@@ -61,9 +90,16 @@ const AddNewItems = () => {
       if (result?.insertedId) {
         router.push("/dashboard/vendor/menu-items")
         router.refresh()
+      } else {
+        throw new Error("Menu item could not be saved. Please try again.")
       }
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Menu item could not be saved"
+      )
+    } finally {
+      setIsSubmitting(false)
     }
-    
   }
 
   return (
@@ -109,12 +145,11 @@ const AddNewItems = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Classic Pizzas">Classic Pizzas</SelectItem>
-                    <SelectItem value="Signature Pizzas">
-                      Signature Pizzas
-                    </SelectItem>
-                    <SelectItem value="Sides">Sides</SelectItem>
-                    <SelectItem value="Drinks">Drinks</SelectItem>
-                    <SelectItem value="Desserts">Desserts</SelectItem>
+                    <SelectItem value="Vegetarian Pizzas">Vegetarian Pizzas</SelectItem>
+                    <SelectItem value="Meat Lovers">Meat Lovers</SelectItem>
+                    <SelectItem value="Specialty / Gourmet">Specialty / Gourmet</SelectItem>
+                    <SelectItem value="Sides & Appetizers">Sides &amp; Appetizers</SelectItem>
+                    <SelectItem value="Beverages & Desserts">Beverages &amp; Desserts</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -177,18 +212,18 @@ const AddNewItems = () => {
               <CardContent className="p-5 pt-3">
                 <div className="space-y-2">
                   <Label htmlFor="image" className="sr-only">
-                    Image URL
+                    Menu item image
                   </Label>
                   <Input
                     id="image"
                     name="image"
-                    type="url"
-                    placeholder="https://..."
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
                     className={inputClassName}
                     required
                   />
                   <p className="text-xs text-ink-soft">
-                    Provide a public image URL for this menu item.
+                    JPG, PNG, or WebP. Maximum size 5 MB.
                   </p>
                 </div>
               </CardContent>
@@ -207,11 +242,18 @@ const AddNewItems = () => {
               </CardContent>
             </Card>
 
+            {errorMessage ? (
+              <p role="alert" className="rounded-xl bg-brand-tint px-4 py-3 text-sm text-brand">
+                {errorMessage}
+              </p>
+            ) : null}
+
             <Button
               type="submit"
+              disabled={isSubmitting}
               className="h-11 w-full rounded-xl bg-brand text-sm font-semibold text-white hover:bg-brand-hover"
             >
-              Submit for approval
+              {isSubmitting ? "Uploading and submitting..." : "Submit for approval"}
             </Button>
           </div>
         </form>

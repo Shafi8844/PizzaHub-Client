@@ -1,21 +1,131 @@
-# Next.js template
+# PizzaHub
 
-This is a Next.js template with shadcn/ui.
+PizzaHub is a responsive pizza ordering platform where customers can browse local restaurant menus and place orders, vendors can manage their menus and incoming orders, and administrators can review platform activity.
 
-## Adding components
+## Project links
 
-To add components to your app, run the following command:
+- Client repository: <https://github.com/Shafi8844/PizzaHub-Client>
+- Server repository: <https://github.com/Shafi8844/PizzaHub-server>
+- Live website: not configured yet
+
+## Features
+
+- Better Auth email and password sign-in with customer and vendor registration
+- Role-specific customer, vendor, and admin dashboards
+- Searchable menu browsing and vendor menu management
+- Menu image uploads to ImgBB with file type and size validation
+- Customer order submission and vendor order status management
+- Stripe Checkout for the monthly Premium vendor plan ($19/month)
+- Stripe webhook verification for subscription activation and cancellation
+- Responsive PizzaHub interface built with Tailwind CSS and reusable UI components
+
+## Technology
+
+**Client:** Next.js 16, React 19, TypeScript, Tailwind CSS 4, Base UI, Lucide React, Better Auth, Stripe SDK.
+
+**Server:** Node.js, Express 5, MongoDB, Stripe SDK.
+
+## Run locally
+
+Use Node.js 20 or newer. The client and server are separate Git repositories and must be installed and started independently.
+
+### 1. Configure the client
 
 ```bash
-npx shadcn@latest add button
+cd pizzaHub-client
+npm install
+cp .env.example .env
 ```
 
-This will place the ui components in the `components` directory.
+Set these values in `pizzaHub-client/.env`:
 
-## Using components
+| Variable | Purpose |
+| --- | --- |
+| `MONGO_DB_URI` | MongoDB connection string |
+| `BETTER_AUTH_SECRET` | Secret used by Better Auth; use a long random value |
+| `BETTER_AUTH_URL` | Client origin, usually `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_URL` | Public client URL used for Stripe redirects |
+| `NEXT_PUBLIC_API_URL` | Backend URL, usually `http://localhost:5050` |
+| `STRIPE_SECRET_KEY` | Stripe secret key; use a test key locally |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key |
+| `IMGBB_API_KEY` | Server-only API key for menu image uploads |
 
-To use the components in your app, import them as follows:
+### 2. Configure the backend
 
-```tsx
-import { Button } from "@/components/ui/button";
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
+
+Set these values in `backend/.env`:
+
+| Variable | Purpose |
+| --- | --- |
+| `MONGO_DB_URI` | MongoDB connection string for the same PizzaHub database |
+| `STRIPE_SECRET_KEY` | Stripe secret key matching the client environment |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret for the Stripe webhook endpoint |
+| `PORT` | Backend port; defaults to `5050` |
+
+### 3. Start both services
+
+In one terminal, from `backend/`:
+
+```bash
+npm run dev
+```
+
+In another terminal, from `pizzaHub-client/`:
+
+```bash
+npm run dev
+```
+
+Open <http://localhost:3000>.
+
+For local Stripe webhook delivery, install the Stripe CLI and run:
+
+```bash
+stripe listen --forward-to localhost:5050/webhooks/stripe
+```
+
+Copy the printed `whsec_...` value to `STRIPE_WEBHOOK_SECRET` in `backend/.env`, then restart the backend. In production, register `https://YOUR_API_HOST/webhooks/stripe` in Stripe and subscribe to `checkout.session.completed`, `customer.subscription.updated`, and `customer.subscription.deleted`.
+
+## Useful commands
+
+Run client commands from `pizzaHub-client/`:
+
+```bash
+npm run dev
+npm run lint
+npm run typecheck
+npm run build
+```
+
+Run backend commands from `backend/`:
+
+```bash
+npm run dev
+npm start
+```
+
+## Environment and deployment notes
+
+- Never commit `.env` files or paste live credentials into source code.
+- Stripe secret and webhook keys belong on the server only. Rotate any key that has been exposed.
+- Google OAuth is not wired into the current app. Configure its provider and credentials before enabling Google sign-in.
+- A live website URL and production deployment configuration have not been supplied.
+- Before production, protect every backend data endpoint with verified authentication, role checks, and ownership checks. The current Express data routes still need that security work; dashboard visibility alone is not API authorization.
+- Admin access must be provisioned securely and never through the public sign-up form.
+
+## Menu search and sorting
+
+The Express menu endpoint accepts `search`, `category`, `location`, `status`, and `sort` query parameters. `sort` supports `newest`, `price-asc`, and `price-desc`; the public browse page always requests `status=approved`. Search text is treated literally so characters in a query are not interpreted as regular-expression operators.
+
+## Repository layout
+
+```text
+assignment-9/
+├── pizzaHub-client/   # Next.js app and Better Auth configuration
+└── backend/           # Express API and Stripe webhook
 ```

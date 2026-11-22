@@ -16,12 +16,11 @@ const PaymentPage = async ({
 }) => {
   const params = await searchParams
   const plan = getParam(params.plan) ?? "premium"
-  const amount = Number(getParam(params.amount) ?? "19")
   const canceled = getParam(params.canceled)
 
   const isPremium = plan === "premium"
   const planName = isPremium ? "Premium Vendor Plan" : "Vendor Plan"
-  const total = Number.isFinite(amount) ? amount : 19
+  const total = 19
 
   return (
     <div className="min-h-screen bg-cream text-ink">

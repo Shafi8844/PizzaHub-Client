@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useSession } from "@/lib/auth-client"
 import { createOrder } from "@/lib/api/order"
-import type { MenuItem } from "@/app/dashboard/vendor/menu-items/page"
+import type { MenuItem } from "@/lib/api/menu"
 
 const inputClassName =
   "h-11 rounded-xl border-line bg-white px-3.5 text-sm text-ink placeholder:text-[#9a8e82] focus-visible:border-brand focus-visible:ring-brand/15"
@@ -28,7 +28,7 @@ export function OrderForm({ item }: { item: MenuItem }) {
     setError("")
 
     if (!user) {
-      router.push(`/sign-in?redirect=/order/${item._id}`)
+      router.push(`/sign-in?redirectTo=${encodeURIComponent(`/order/${item._id}`)}`)
       return
     }
 

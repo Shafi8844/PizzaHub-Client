@@ -1,11 +1,13 @@
 import Image from "next/image"
 import Link from "next/link"
+import { notFound, redirect } from "next/navigation"
 import { ArrowLeft, MapPin, ShoppingBag } from "lucide-react"
 
 import Nav from "@/components/navbar/nav"
 import Footer from "@/components/footer/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getMenuItemById } from "@/lib/api/menu"
+import { getSession } from "@/lib/core/server"
 import { OrderForm } from "./_components/order-form"
 
 type Props = {
@@ -14,7 +16,16 @@ type Props = {
 
 const OrderPage = async ({ params }: Props) => {
   const { id } = await params
+  const session = await getSession()
+  if (!session) redirect(`/sign-in?redirectTo=${encodeURIComponent(`/order/${id}`)}`)
+  if (session.user.role !== "customer") {
+    redirect(`/dashboard/${session.user.role}`)
+  }
+
   const item = await getMenuItemById(id)
+  if (!item || item.status !== "approved") notFound()
+  if (item.vendorId === session.user.id) redirect("/browse-menu")
+
   const image = item.images?.[0]
 
   return (

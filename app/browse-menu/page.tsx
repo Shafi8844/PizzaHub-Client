@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { getMenuItems } from "@/lib/api/menu"
-import type { MenuItem } from "@/app/dashboard/vendor/menu-items/page"
+import type { MenuItem } from "@/lib/api/menu"
 import { MenuItemDialog } from "./_components/menu-item-dialog"
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>
@@ -29,11 +29,14 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
   const search = getParam(params.search) ?? ""
   const category = getParam(params.category) ?? "all"
   const location = getParam(params.location) ?? "all"
+  const sort = getParam(params.sort) ?? "newest"
 
   const query = new URLSearchParams()
+  query.set("status", "approved")
   if (search) query.set("search", search)
   if (category !== "all") query.set("category", category)
   if (location !== "all") query.set("location", location)
+  if (sort !== "newest") query.set("sort", sort)
 
   const menuItems = await getMenuItems(query.toString())
 
@@ -66,7 +69,7 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
 
           <Card className="mt-8 rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
             <CardContent className="p-4 sm:p-5">
-              <form className="grid gap-3 md:grid-cols-[1fr_220px_220px_auto]">
+                <form className="grid gap-3 md:grid-cols-[1fr_190px_190px_190px_auto]">
                 <div className="relative">
                   <Search
                     className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-ink-soft"
@@ -106,6 +109,17 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
                   </SelectContent>
                 </Select>
 
+                <Select name="sort" defaultValue={sort}>
+                  <SelectTrigger className="h-11 w-full rounded-xl border-line bg-white px-3.5 text-sm text-ink focus-visible:border-brand focus-visible:ring-brand/15">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Recently added</SelectItem>
+                    <SelectItem value="price-asc">Price: low to high</SelectItem>
+                    <SelectItem value="price-desc">Price: high to low</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <div className="flex gap-2">
                   <Button
                     type="submit"
@@ -114,7 +128,7 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
                     <SlidersHorizontal className="size-4" aria-hidden />
                     Apply
                   </Button>
-                  {(search || category !== "all" || location !== "all") && (
+                  {(search || category !== "all" || location !== "all" || sort !== "newest") && (
                     <Button
                       render={<Link href="/browse-menu" />}
                       variant="outline"
@@ -175,10 +189,8 @@ const BrowseMenu = async ({ searchParams }: { searchParams: SearchParams }) => {
                       {item.description}
                     </p>
                     <div className="flex items-center justify-between gap-3 pt-1">
-                      <p className="truncate text-xs text-ink-soft">{item.location}</p>
-                      <span className="rounded-full bg-[#f5ede3] px-2.5 py-1 text-[11px] font-semibold capitalize text-ink-soft">
-                        {item.status || "pending"}
-                      </span>
+                      <p className="truncate text-xs text-ink-soft">{item.vendorName}</p>
+                      <p className="shrink-0 text-xs text-ink-soft">{item.location}</p>
                     </div>
                     <div className="pt-2">
                       <MenuItemDialog item={item} />

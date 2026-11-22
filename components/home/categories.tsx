@@ -18,7 +18,7 @@ export default function Categories() {
         {categories.map((category) => (
           <Link
             key={category}
-            href="/#featured"
+            href={`/browse-menu?category=${encodeURIComponent(category)}`}
             className="flex items-center gap-3.5 rounded-[20px] border border-line bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(31,26,23,0.09)]"
           >
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint">

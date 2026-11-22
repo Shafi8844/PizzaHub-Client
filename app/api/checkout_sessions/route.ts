@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server"
-import { headers } from "next/headers"
 
 import { stripe } from "@/lib/stripe"
 import { getSession } from "@/lib/core/server"
 
 export async function POST(req: Request) {
-
-    const userSession = await getSession()
-    
   try {
     if (!stripe) {
       return NextResponse.json(
@@ -16,36 +12,50 @@ export async function POST(req: Request) {
       )
     }
 
-    const headersList = await headers()
-    const origin = headersList.get("origin") ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+    const userSession = await getSession()
+    if (!userSession) {
+      return NextResponse.json({ error: "Sign in to upgrade your subscription" }, { status: 401 })
+    }
+    if (userSession.user.role !== "vendor") {
+      return NextResponse.json({ error: "Only vendors can purchase this subscription" }, { status: 403 })
+    }
+    const currentUser = userSession.user as typeof userSession.user & {
+      banned?: boolean
+      blocked?: boolean
+    }
+    if (currentUser.banned || currentUser.blocked) {
+      return NextResponse.json({ error: "This account cannot make purchases" }, { status: 403 })
+    }
 
-    const formData = await req.formData()
-    const plan = String(formData.get("plan") ?? "premium")
-    const amount = Number(formData.get("amount") ?? 19)
-    const total = Number.isFinite(amount) && amount > 0 ? amount : 19
-    const planName = plan === "premium" ? "Premium Vendor Plan" : "Vendor Plan"
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ??
+      process.env.BETTER_AUTH_URL ??
+      new URL(req.url).origin
+    const userId = userSession.user.id
+    const metadata = { userId }
 
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
+      mode: "subscription",
       customer_email: userSession?.user?.email ?? undefined,
-      metadata: {
-        userId: userSession?.user?.id ?? "",
-      },
+      client_reference_id: userId,
+      metadata,
+      subscription_data: { metadata },
       line_items: [
         {
           quantity: 1,
           price_data: {
             currency: "usd",
-            unit_amount: Math.round(total * 100),
+            unit_amount: 1900,
+            recurring: { interval: "month" },
             product_data: {
-              name: planName,
-              description: "PizzaHub vendor subscription",
+              name: "PizzaHub Premium Vendor Plan",
+              description: "Monthly subscription for PizzaHub vendors",
             },
           },
         },
       ],
       success_url: `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/payment?plan=${encodeURIComponent(plan)}&amount=${encodeURIComponent(String(total))}&canceled=1`,
+      cancel_url: `${origin}/payment?canceled=1`,
     })
 
     if (!session.url) {

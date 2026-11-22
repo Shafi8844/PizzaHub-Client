@@ -29,6 +29,14 @@ function initialsFor(name: string) {
 export default function Nav() {
   const router = useRouter()
   const { data: session, isPending } = useSession()
+  const role = (session?.user?.role as string | undefined) ?? "customer"
+  const dashboardHref = `/dashboard/${role}`
+  const settingsHref =
+    role === "vendor"
+      ? "/dashboard/vendor/settings"
+      : role === "customer"
+        ? "/dashboard/customer/settings"
+        : "/dashboard/admin"
 
   async function handleSignOut() {
     await signOut()
@@ -92,14 +100,14 @@ export default function Nav() {
               <DropdownMenuSeparator className="-mx-1.5 my-1 bg-line" />
 
               <DropdownMenuItem
-                render={<Link href={`/dashboard/${session.user?.role || 'customer'}`} />}
+                render={<Link href={dashboardHref} />}
                 className="gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-ink focus:bg-brand-tint"
               >
                 <LayoutDashboard className="size-4" aria-hidden />
                 Dashboard
               </DropdownMenuItem>
               <DropdownMenuItem
-                render={<Link href="/profile" />}
+                render={<Link href={settingsHref} />}
                 className="gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium text-ink focus:bg-brand-tint"
               >
                 <Settings className="size-4" aria-hidden />

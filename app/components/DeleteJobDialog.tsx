@@ -11,7 +11,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { MenuItem } from "../dashboard/vendor/menu-items/page"
+import type { MenuItem } from "@/lib/api/menu"
 import { Trash2Icon } from "lucide-react"
 import { deleteMenuItem } from "@/lib/actions/menu"
 import { useState } from "react"

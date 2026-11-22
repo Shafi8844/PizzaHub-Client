@@ -10,7 +10,6 @@ import Logo from "@/components/logo"
 const roles = [
   { value: "customer", label: "Customer" },
   { value: "vendor", label: "Vendor" },
-  { value: "admin", label: "Admin" },
 ] as const
 type Role = (typeof roles)[number]["value"]
 
@@ -126,7 +125,8 @@ export default function SignUpForm() {
         return
       }
 
-      router.push("/")
+      router.push(`/dashboard/${role}`)
+      router.refresh()
     } catch {
       setErrorMessage("We couldn't create your account. Please try again.")
     } finally {

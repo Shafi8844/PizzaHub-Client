@@ -1,8 +1,20 @@
+import { redirect } from "next/navigation"
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { getSession } from "@/lib/core/server"
 import { DahsboardSideBar } from "../components/DahsboardSideBar"
 import { Toaster } from "@/components/ui/toast"
 
-const DahsboardLayout = ({ children }: { children: React.ReactNode }) => {
+const DahsboardLayout = async ({ children }: { children: React.ReactNode }) => {
+  const session = await getSession()
+  if (!session) redirect("/sign-in")
+
+  const user = session.user as typeof session.user & {
+    banned?: boolean
+    blocked?: boolean
+  }
+  if (user.banned || user.blocked) redirect("/?blocked=1")
+
   return (
     <SidebarProvider>
       <DahsboardSideBar />

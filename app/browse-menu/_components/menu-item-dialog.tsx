@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import type { MenuItem } from "@/app/dashboard/vendor/menu-items/page"
+import type { MenuItem } from "@/lib/api/menu"
 import { useSession } from "@/lib/auth-client"
 
 export function MenuItemDialog({ item }: { item: MenuItem }) {
@@ -37,8 +37,7 @@ export function MenuItemDialog({ item }: { item: MenuItem }) {
       </DialogTrigger>
 
       <DialogContent className="overflow-hidden p-0 sm:max-w-2xl">
-        {user ? (
-          <div className="grid sm:grid-cols-[240px_1fr]">
+        <div className="grid sm:grid-cols-[240px_1fr]">
             <div className="relative min-h-56 bg-[#f5ede3] sm:min-h-full">
               {image ? (
                 <Image
@@ -88,52 +87,42 @@ export function MenuItemDialog({ item }: { item: MenuItem }) {
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-ink-soft">Status</span>
-                  <span className="rounded-full bg-[#f3ece3] px-2.5 py-1 text-xs font-semibold capitalize text-ink-soft">
-                    {item.status || "pending"}
+                  <span className="text-ink-soft">Restaurant</span>
+                  <span className="text-right font-medium text-ink">
+                    {item.vendorName || "Local restaurant"}
                   </span>
                 </div>
               </div>
 
               <DialogFooter className="mt-6">
-                {user.role === "customer" ? (
+                {user?.role === "customer" && user.id !== item.vendorId ? (
                   <Button
                     onClick={() => router.push(`/order/${item._id}`)}
                     className="h-11 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover"
                   >
                     Order Now
                   </Button>
+                ) : !user ? (
+                  <Button
+                    onClick={() =>
+                      router.push(
+                        `/sign-in?redirectTo=${encodeURIComponent(`/order/${item._id}`)}`
+                      )
+                    }
+                    className="h-11 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover"
+                  >
+                    Sign in to order
+                  </Button>
                 ) : (
                   <p className="text-sm text-ink-soft">
-                    Only customers can place orders.
+                    {user.id === item.vendorId
+                      ? "You cannot order your own menu item."
+                      : "Only customers can place orders."}
                   </p>
                 )}
               </DialogFooter>
             </div>
           </div>
-        ) : (
-          <div className="p-6">
-            <DialogHeader className="gap-3">
-              <p className="text-xs font-semibold tracking-[0.12em] text-brand uppercase">
-                Sign-In Required
-              </p>
-              <DialogTitle className="font-heading text-2xl font-semibold tracking-[-0.02em] text-ink">
-                Please sign in to view menu item details and order
-              </DialogTitle>
-            </DialogHeader>
-
-            <DialogFooter className="mt-6">
-              <Button
-                onClick={() =>
-                  router.push(`/sign-in?redirect=/browse-menu`)
-                }
-                className="h-11 rounded-xl bg-brand px-5 text-sm font-semibold text-white hover:bg-brand-hover"
-              >
-                Sign In
-              </Button>
-            </DialogFooter>
-          </div>
-        )}
       </DialogContent>
     </Dialog>
   )

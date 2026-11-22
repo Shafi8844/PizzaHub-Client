@@ -5,24 +5,9 @@ import { headers } from "next/headers"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { getMenuItems } from "@/lib/api/menu"
+import { getMenuItems, type MenuItem, type MenuItemStatus } from "@/lib/api/menu"
 import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
 import { auth } from "@/lib/auth"
-
-export type MenuItemStatus = "pending" | "approved" | "rejected" | "inactive"
-
-export type MenuItem = {
-  _id: string
-  vendorId: string
-  itemName: string
-  category: string
-  description: string
-  price: number
-  location: string
-  images: string[]
-  status: MenuItemStatus
-  createdAt: string
-}
 
 const statusStyles: Record<MenuItemStatus, string> = {
   approved: "bg-leaf-tint text-leaf",

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { MenuItem, MenuItemStatus } from "@/app/dashboard/vendor/menu-items/page"
+import type { MenuItem, MenuItemStatus } from "@/lib/api/menu"
 
 const statusStyles: Record<MenuItemStatus, string> = {
   approved: "bg-leaf-tint text-leaf",

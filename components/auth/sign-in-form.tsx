@@ -6,17 +6,14 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { authClient } from "@/lib/auth-client"
 import Logo from "@/components/logo"
-import { useSearchParams } from "next/navigation"
 
 const fieldClassName =
   "mt-1.5 h-11 w-full rounded-xl border border-line bg-white px-3.5 text-sm text-ink shadow-none outline-none transition placeholder:text-[#8a7f74] focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/15"
 
-export default function SignInForm() {
+export default function SignInForm({ redirectTo = "/" }: { redirectTo?: string }) {
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") || "/";
 
   async function handleSignIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -28,7 +25,7 @@ export default function SignInForm() {
     const password = String(formData.get("password") ?? "")
 
     try {
-      const { error } = await authClient.signIn.email({
+      const { data, error } = await authClient.signIn.email({
         email,
         password,
         callbackURL: redirectTo,
@@ -41,7 +38,12 @@ export default function SignInForm() {
         return
       }
 
-      router.push("/")
+      const destination =
+        redirectTo === "/" && data?.user.role
+          ? `/dashboard/${data.user.role}`
+          : redirectTo
+      router.push(destination)
+      router.refresh()
     } catch {
       setErrorMessage("We couldn't sign you in. Please try again.")
     } finally {
