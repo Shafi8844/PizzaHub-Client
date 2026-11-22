@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       mode: "payment",
       customer_email: userSession?.user?.email ?? undefined,
       metadata: {
-        userId:userSession?.user?.id,
+        userId: userSession?.user?.id ?? "",
       },
       line_items: [
         {

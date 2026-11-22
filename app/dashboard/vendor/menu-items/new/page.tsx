@@ -23,7 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { createmenu, type NewMenuItem } from "@/lib/actions/menu"
 import { useSession } from "@/lib/auth-client"
-import { getVendorMenuCount } from "@/lib/api/menu"
+import { getMenuCount } from "@/lib/api/menu"
 
 const inputClassName =
   "h-11 rounded-xl border-line bg-white px-3.5 text-sm text-ink placeholder:text-[#9a8e82] focus-visible:border-brand focus-visible:ring-brand/15"
@@ -39,30 +39,28 @@ const AddNewItems = () => {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
 
-    if(session?.user && session?.user?.role === "vendor") {
-      const countResult = await getVendorMenuCount (`vendorId=${session.user.id}`)
+    if (session?.user && session.user.role === "vendor") {
+      const countResult = await getMenuCount(`vendorId=${session.user.id}&status=approved`)
       if (countResult.count >= 3) {
-        router.push("/payment")
+        router.push("/dashboard/vendor/subscription")
         return
       }
-      else{
-        const payload: NewMenuItem = {
-      vendorId: session?.user?.id ?? "",
-      itemName: String(formData.get("itemName") ?? "").trim(),
-      category: String(formData.get("category") ?? "").trim(),
-      description: String(formData.get("description") ?? "").trim(),
-      price: Number(formData.get("price") ?? 0),
-      location: String(formData.get("location") ?? "").trim(),
-      images: [String(formData.get("image") ?? "").trim()].filter(Boolean),
-      status: "pending",
-      createdAt: new Date().toISOString(),
-    }
+      const payload: NewMenuItem = {
+        vendorId: session.user.id,
+        itemName: String(formData.get("itemName") ?? "").trim(),
+        category: String(formData.get("category") ?? "").trim(),
+        description: String(formData.get("description") ?? "").trim(),
+        price: Number(formData.get("price") ?? 0),
+        location: String(formData.get("location") ?? "").trim(),
+        images: [String(formData.get("image") ?? "").trim()].filter(Boolean),
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      }
 
-    const result = await createmenu(payload)
-    if (result?.insertedId) {
-      router.push("/dashboard/vendor/menu-items")
-      router.refresh()
-    }
+      const result = await createmenu(payload)
+      if (result?.insertedId) {
+        router.push("/dashboard/vendor/menu-items")
+        router.refresh()
       }
     }
     

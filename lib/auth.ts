@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth"
 import { MongoClient } from "mongodb"
 import { mongodbAdapter } from "@better-auth/mongo-adapter"
+import { admin } from "better-auth/plugins"
 
 const mongoUri = process.env.MONGO_DB_URI
 
@@ -21,6 +22,9 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  plugins:[
+    admin(),
+  ],
   user: {
     additionalFields: {
       role: {

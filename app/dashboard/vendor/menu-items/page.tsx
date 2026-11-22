@@ -1,12 +1,13 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Pencil, Plus } from "lucide-react"
-
+import { headers } from "next/headers"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { getMenuItems } from "@/lib/api/menu"
 import { DeleteJobDialog } from "@/app/components/DeleteJobDialog"
+import { auth } from "@/lib/auth"
 
 export type MenuItemStatus = "pending" | "approved" | "rejected" | "inactive"
 
@@ -30,9 +31,11 @@ const statusStyles: Record<MenuItemStatus, string> = {
   inactive: "bg-[#f3ece3] text-ink-soft",
 }
 
-const MenuItemsPage =async () => {
+const MenuItemsPage = async () => {
+  const session = await auth.api.getSession({ headers: await headers() })
+  const vendorId = session?.user?.id
+  const menu = vendorId ? await getMenuItems(`vendorId=${vendorId}`) : []
 
-    const menu = await getMenuItems();
   return (
     <div className="min-h-screen bg-cream px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
       <div className="mx-auto w-full max-w-[1040px]">
@@ -45,7 +48,7 @@ const MenuItemsPage =async () => {
               My Menu Items
             </h1>
             <p className="mt-2 text-sm text-ink-soft">
-              Manage the items available on your PizzaHub menu.
+              Manage your own menu items, approval status, and availability.
             </p>
           </div>
 
@@ -68,6 +71,7 @@ const MenuItemsPage =async () => {
                     <th className="px-6 py-4">Category</th>
                     <th className="px-6 py-4">Price</th>
                     <th className="px-6 py-4">Status</th>
+                    <th className="px-6 py-4">Availability</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -110,6 +114,9 @@ const MenuItemsPage =async () => {
                           {item.status}
                         </span>
                       </td>
+                      <td className="px-6 py-4 text-sm text-ink-soft">
+                        {item.status === "approved" ? "Active" : item.status === "inactive" ? "Inactive" : "Awaiting review"}
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -117,6 +124,7 @@ const MenuItemsPage =async () => {
                             size="icon-sm"
                             className="rounded-lg border-line text-ink-soft hover:bg-[#f5ede3] hover:text-ink"
                             aria-label={`Edit ${item.itemName}`}
+                            render={<Link href={`/dashboard/vendor/menu-items/${item._id}/edit`} />}
                           >
                             <Pencil className="size-4" aria-hidden />
                           </Button>

@@ -12,12 +12,15 @@ export const getMenuItems = async (query = ""): Promise<MenuItem[]> => {
   return response.json()
 }
 
-export const getVendorMenuCount = async (vendorId: string): Promise<{count: number}> => {
-  const response = await fetch(`${BaseURL}/menu/count?${vendorId}`)
+export const getMenuCount = async (query = ""): Promise<{ count: number }> => {
+  const response = await fetch(`${BaseURL}/menu/count${query ? `?${query}` : ""}`, {
+    cache: "no-store",
+  })
+  if (!response.ok) return { count: 0 }
   return response.json()
 }
 
 export const getMenuItemById = async (id: string): Promise<MenuItem> => {
-  const response = await fetch(`${BaseURL}/menu/${id}`)
+  const response = await fetch(`${BaseURL}/menu/${id}`, { cache: "no-store" })
   return response.json()
 }

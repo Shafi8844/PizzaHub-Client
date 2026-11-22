@@ -48,6 +48,7 @@ export function OrderForm({ item }: { item: MenuItem }) {
       customerEmail: String(formData.get("customerEmail") ?? user.email ?? "").trim(),
       deliveryAddress: String(formData.get("deliveryAddress") ?? "").trim(),
       phone: String(formData.get("phone") ?? "").trim(),
+      deliveryDate: String(formData.get("deliveryDate") ?? "").trim(),
       note: String(formData.get("note") ?? "").trim(),
       status: "pending",
       createdAt: new Date().toISOString(),
@@ -97,7 +98,7 @@ export function OrderForm({ item }: { item: MenuItem }) {
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-5 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="phone" className={labelClassName}>
             Phone number
@@ -120,6 +121,18 @@ export function OrderForm({ item }: { item: MenuItem }) {
             type="number"
             min="1"
             defaultValue="1"
+            className={inputClassName}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="deliveryDate" className={labelClassName}>
+            Delivery date
+          </Label>
+          <Input
+            id="deliveryDate"
+            name="deliveryDate"
+            type="date"
             className={inputClassName}
             required
           />
