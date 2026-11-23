@@ -5,7 +5,7 @@ import { DashboardShell } from "../../_components/dashboard-shell"
 
 const AdminTransactionsPage = async () => {
   const token = await createBackendToken()
-  const transactions = token ? await getTransactions(token) : []
+  const transactions = token ? await getTransactions(token) : null
 
   return (
     <DashboardShell
@@ -27,7 +27,7 @@ const AdminTransactionsPage = async () => {
                 </tr>
               </thead>
               <tbody>
-                {transactions.length ? transactions.map((transaction) => (
+                {transactions?.length ? transactions.map((transaction) => (
                   <tr key={transaction._id} className="border-b border-line last:border-0">
                     <td className="px-5 py-4">
                       <p className="text-sm font-medium text-ink">{transaction.vendorName}</p>
@@ -52,7 +52,9 @@ const AdminTransactionsPage = async () => {
                 )) : (
                   <tr>
                     <td colSpan={5} className="px-5 py-12 text-center text-sm text-ink-soft">
-                      No verified subscription transactions yet.
+                      {transactions === null
+                        ? "Your admin session could not be verified. Sign in again to load transactions."
+                        : "No verified subscription transactions yet. Stripe sends these records after its webhook confirms a vendor checkout. For local development, forward events with `stripe listen --forward-to localhost:5050/webhooks/stripe` and set the generated STRIPE_WEBHOOK_SECRET in backend/.env."}
                     </td>
                   </tr>
                 )}

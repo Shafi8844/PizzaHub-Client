@@ -106,7 +106,8 @@ export function AdminUsersTable({
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={loadingId === user._id}
+                      disabled={loadingId === user._id || user.canBlock === false}
+                      title={user.canBlock === false ? "You cannot change your own admin account" : undefined}
                       onClick={() => toggleBlock(user)}
                       className="rounded-lg border-line text-ink-soft hover:bg-[#f5ede3] hover:text-ink"
                     >

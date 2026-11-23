@@ -3,11 +3,11 @@ import { MongoClient } from "mongodb"
 import { mongodbAdapter } from "@better-auth/mongo-adapter"
 import { admin, jwt } from "better-auth/plugins"
 
-const mongoUri = process.env.MONGO_DB_URI
+const mongoUri = process.env.MONGO_DB_URI || process.env.MONGO_URI
 
 if (!mongoUri) {
   throw new Error(
-    "MONGO_DB_URI is not set. Add a full connection string to .env, e.g. mongodb://user:password@host:27017/?authSource=admin"
+    "MONGO_DB_URI (or MONGO_URI) is not set. Add a full MongoDB connection string to .env."
   )
 }
 
@@ -30,7 +30,7 @@ export const auth = betterAuth({
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      clientSecret: (process.env.GOOGLE_CLIENT_SECRET || process.env.GOOGLE_SECRET)!,
     },
   },
   plugins: [

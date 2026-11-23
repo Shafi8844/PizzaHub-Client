@@ -8,7 +8,10 @@ export type User = {
   role?: "customer" | "vendor" | "admin"
   image?: string | null
   blocked?: boolean
+  banned?: boolean
+  banExpires?: string | Date | null
   premium?: boolean
+  canBlock?: boolean
 }
 
 export async function getUsers(query = "", token?: string): Promise<User[]> {

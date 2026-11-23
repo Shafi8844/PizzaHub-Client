@@ -30,8 +30,12 @@ async function proxy(request: Request, context: RouteContext) {
     const appOrigin = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BETTER_AUTH_URL
     let originAllowed = false
     try {
+      const requestOrigin = new URL(request.url).origin
       originAllowed = Boolean(
-        origin && appOrigin && new URL(origin).origin === new URL(appOrigin).origin
+        origin && (
+          new URL(origin).origin === requestOrigin ||
+          (appOrigin && new URL(origin).origin === new URL(appOrigin).origin)
+        )
       )
     } catch {
       originAllowed = false

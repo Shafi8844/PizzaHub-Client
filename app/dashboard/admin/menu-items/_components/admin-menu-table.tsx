@@ -6,6 +6,16 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { MenuItem, MenuItemStatus } from "@/lib/api/menu"
@@ -31,6 +41,7 @@ export function AdminMenuTable({
   const searchParams = useSearchParams()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
   const [errorMessage, setErrorMessage] = React.useState("")
+  const [deleteTarget, setDeleteTarget] = React.useState<MenuItem | null>(null)
 
   function setParam(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString())
@@ -65,10 +76,12 @@ export function AdminMenuTable({
     setErrorMessage("")
     try {
       const response = await fetch(`/api/backend/menu/${id}`, { method: "DELETE" })
+      const result = (await response.json().catch(() => null)) as { error?: string; deletedCount?: number } | null
       if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as { error?: string } | null
         throw new Error(result?.error ?? "Menu item could not be deleted")
       }
+      if (!result?.deletedCount) throw new Error("Menu item was not deleted. Refresh the page and try again.")
+      setDeleteTarget(null)
       router.refresh()
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Menu item could not be deleted")
@@ -78,6 +91,7 @@ export function AdminMenuTable({
   }
 
   return (
+    <>
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
         {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
@@ -129,11 +143,6 @@ export function AdminMenuTable({
                   </td>
                   <td className="px-5 py-4 text-sm text-ink-soft">
                     {item.vendorName || item.vendorId || "—"}
-                    {item.status === "pending" && item.canApprove === false ? (
-                      <p className="mt-1 max-w-48 text-xs text-brand">
-                        Free plan limit reached. Vendor must upgrade to Premium before approval.
-                      </p>
-                    ) : null}
                   </td>
                   <td className="px-5 py-4">
                     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[item.status] ?? statusStyles.pending}`}>
@@ -142,10 +151,12 @@ export function AdminMenuTable({
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex flex-wrap justify-end gap-2">
-                      <Button size="sm" disabled={loadingId === item._id || (item.status === "pending" && item.canApprove === false)} title={item.status === "pending" && item.canApprove === false ? "The vendor has reached the Free plan item limit" : undefined} onClick={() => patchItem(item._id, { status: "approved" })} className="rounded-lg bg-leaf text-white hover:bg-leaf/90">Approve</Button>
+                      <Button size="sm" disabled={loadingId === item._id || item.status === "approved"} onClick={() => patchItem(item._id, { status: "approved" })} className="rounded-lg bg-leaf text-white hover:bg-leaf/90">
+                        {loadingId === item._id ? "Saving…" : item.status === "approved" ? "Approved" : "Approve"}
+                      </Button>
                       <Button size="sm" variant="outline" disabled={loadingId === item._id} onClick={() => patchItem(item._id, { status: "rejected" })} className="rounded-lg border-brand/30 text-brand hover:bg-brand-tint">Reject</Button>
                       <Button size="sm" variant="outline" disabled={loadingId === item._id} onClick={() => patchItem(item._id, { status: "inactive" })} className="rounded-lg border-line text-ink-soft hover:bg-[#f5ede3]">Inactive</Button>
-                      <Button size="sm" variant="outline" disabled={loadingId === item._id} onClick={() => deleteItem(item._id)} className="rounded-lg border-brand/30 text-brand hover:bg-brand-tint">Delete</Button>
+                      <Button size="sm" variant="outline" disabled={loadingId === item._id} onClick={() => { setErrorMessage(""); setDeleteTarget(item) }} className="rounded-lg border-brand/30 text-brand hover:bg-brand-tint">Delete</Button>
                     </div>
                   </td>
                 </tr>
@@ -155,5 +166,28 @@ export function AdminMenuTable({
         </div>
       </CardContent>
     </Card>
+    <AlertDialog open={Boolean(deleteTarget)} onOpenChange={(open) => { if (!open && loadingId === null) setDeleteTarget(null) }}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete {deleteTarget?.itemName}?</AlertDialogTitle>
+          <AlertDialogDescription>This will permanently remove this menu item from PizzaHub.</AlertDialogDescription>
+        </AlertDialogHeader>
+        {errorMessage ? <p role="alert" className="rounded-lg bg-brand-tint px-3 py-2 text-sm text-brand">{errorMessage}</p> : null}
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={loadingId !== null}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={!deleteTarget || loadingId !== null}
+            onClick={(event) => {
+              event.preventDefault()
+              if (deleteTarget) void deleteItem(deleteTarget._id)
+            }}
+            className="bg-brand text-white hover:bg-brand-hover"
+          >
+            {loadingId === deleteTarget?._id ? "Deleting…" : "Delete item"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   )
 }

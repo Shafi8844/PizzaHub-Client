@@ -12,7 +12,6 @@ export type MenuItem = {
   status: MenuItemStatus
   createdAt: string
   vendorName?: string
-  canApprove?: boolean
 }
 
 const BaseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050"
