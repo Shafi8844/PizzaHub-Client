@@ -1,10 +1,16 @@
 import Link from "next/link"
+import * as motion from "motion/react-client"
 import PizzaIllustration from "@/components/pizza-illustration"
 
 export default function Hero() {
   return (
     <section className="mx-auto grid w-full max-w-[1200px] items-center gap-8 px-4 pt-6 pb-12 sm:px-6 md:pt-8 md:pb-16 lg:grid-cols-2 lg:gap-12 lg:px-8 lg:pt-8 lg:pb-20 xl:px-12">
-      <div className="mx-auto w-full max-w-[540px]">
+      <motion.div
+        className="mx-auto w-full max-w-[540px]"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+      >
         <p className="mb-4 text-xs font-bold tracking-[0.09em] text-brand uppercase sm:mb-5">
           Pizza ordering &amp; delivery
         </p>
@@ -46,7 +52,7 @@ export default function Hero() {
             Explore Pizza Menu
           </Link>
         </form>
-      </div>
+      </motion.div>
 
       <div className="relative mx-auto aspect-square w-full max-w-[440px] overflow-hidden rounded-[26px] bg-[linear-gradient(145deg,#f8ddbc,#f0b48c_55%,#e58b66)] sm:rounded-[32px]">
         <PizzaIllustration className="absolute top-[43%] left-1/2 w-[68%] max-w-[340px] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_18px_24px_rgba(31,26,23,0.18)]" />

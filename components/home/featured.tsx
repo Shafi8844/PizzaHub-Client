@@ -1,15 +1,26 @@
 import Image from "next/image"
 import Link from "next/link"
+import * as motion from "motion/react-client"
 
 import { getMenuItems, type MenuItem } from "@/lib/api/menu"
 import PizzaIllustration from "@/components/pizza-illustration"
 import Section from "@/components/section"
 
-function FeaturedCard({ item }: { item: MenuItem }) {
+function FeaturedCard({ item, index }: { item: MenuItem; index: number }) {
   const image = item.images?.[0]
 
   return (
-    <article className="flex h-full flex-col overflow-hidden rounded-[20px] border border-line bg-white shadow-card">
+    <motion.article
+      className="flex h-full flex-col overflow-hidden rounded-[20px] border border-line bg-white shadow-card"
+      initial={{ opacity: 0, y: 14 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.12 }}
+      transition={{
+        duration: 0.35,
+        delay: (index % 3) * 0.06,
+        ease: "easeOut",
+      }}
+    >
       <Link
         href={`/browse-menu?search=${encodeURIComponent(item.itemName)}`}
         aria-label={`Browse ${item.itemName}`}
@@ -50,7 +61,7 @@ function FeaturedCard({ item }: { item: MenuItem }) {
           </Link>
         </div>
       </div>
-    </article>
+    </motion.article>
   )
 }
 
@@ -73,21 +84,30 @@ export default async function Featured() {
             Fresh out of the oven
           </h2>
         </div>
-        <Link href="/browse-menu" className="text-sm font-semibold text-brand hover:text-brand-hover">
+        <Link
+          href="/browse-menu"
+          className="text-sm font-semibold text-brand hover:text-brand-hover"
+        >
           Browse the menu
         </Link>
       </div>
       {items.length ? (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => <FeaturedCard key={item._id} item={item} />)}
+          {items.map((item, index) => (
+            <FeaturedCard key={item._id} item={item} index={index} />
+          ))}
         </div>
       ) : (
         <div className="rounded-2xl border border-line bg-white px-6 py-10 text-center">
           <p className="font-semibold text-ink">New favorites are on the way</p>
           <p className="mt-2 text-sm text-ink-soft">
-            Approved restaurant items will appear here as soon as they are available.
+            Approved restaurant items will appear here as soon as they are
+            available.
           </p>
-          <Link href="/browse-menu" className="mt-4 inline-block text-sm font-semibold text-brand">
+          <Link
+            href="/browse-menu"
+            className="mt-4 inline-block text-sm font-semibold text-brand"
+          >
             Explore the menu
           </Link>
         </div>

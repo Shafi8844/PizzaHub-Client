@@ -3,6 +3,7 @@ import { getUsers } from "@/lib/api/users"
 import { createBackendToken } from "@/lib/api/backend-token"
 import { getTransactions } from "@/lib/api/transactions"
 import { DashboardShell, StatCard } from "../_components/dashboard-shell"
+import { DashboardChart } from "../_components/dashboard-chart"
 
 const AdminDashboardPage = async () => {
   const token = await createBackendToken()
@@ -30,6 +31,20 @@ const AdminDashboardPage = async () => {
         <StatCard label="Pending Menu Items" value={pendingItems.count} />
         <StatCard label="Total Transactions" value={transactions.length} />
       </div>
+      <DashboardChart
+        title="Platform activity"
+        description="Current platform totals at a glance."
+        data={[
+          { label: "Customers", value: customers, color: "bg-brand" },
+          { label: "Vendors", value: vendors, color: "bg-gold" },
+          { label: "Menu items", value: items.length, color: "bg-leaf" },
+          {
+            label: "Transactions",
+            value: transactions.length,
+            color: "bg-ink-soft",
+          },
+        ]}
+      />
     </DashboardShell>
   )
 }

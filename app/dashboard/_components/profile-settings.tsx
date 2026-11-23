@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authClient } from "@/lib/auth-client"
+import { toast } from "@/components/ui/toast"
 
 type UserLike = {
   name?: string | null
@@ -40,15 +41,33 @@ export function ProfileSettings({ user }: { user?: UserLike }) {
     setErrorMessage("")
 
     try {
-      const { error } = await authClient.updateUser({ name: name.trim(), image: image.trim() || null })
+      const { error } = await authClient.updateUser({
+        name: name.trim(),
+        image: image.trim() || null,
+      })
       if (error) {
         setErrorMessage(error.message ?? "Profile could not be updated")
+        toast.add({
+          title: "Profile update failed",
+          description: error.message ?? "Please try again.",
+          type: "error",
+        })
         return
       }
       setMessage("Profile updated")
+      toast.add({
+        title: "Profile updated",
+        description: "Your profile changes have been saved.",
+        type: "success",
+      })
       router.refresh()
     } catch {
       setErrorMessage("Profile could not be updated. Please try again.")
+      toast.add({
+        title: "Profile update failed",
+        description: "Please try again.",
+        type: "error",
+      })
     } finally {
       setIsSaving(false)
     }
@@ -59,32 +78,88 @@ export function ProfileSettings({ user }: { user?: UserLike }) {
       <CardContent className="space-y-6 p-6">
         <div className="flex items-center gap-4">
           <Avatar className="size-14">
-          <AvatarImage src={image || undefined} alt={name || "User"} />
-            <AvatarFallback className="bg-brand-tint text-brand">{initials}</AvatarFallback>
+            <AvatarImage src={image || undefined} alt={name || "User"} />
+            <AvatarFallback className="bg-brand-tint text-brand">
+              {initials}
+            </AvatarFallback>
           </Avatar>
           <div>
             <p className="font-semibold text-ink">{name || "Account"}</p>
-            <p className="text-sm capitalize text-ink-soft">{user?.role || "user"}</p>
+            <p className="text-sm text-ink-soft capitalize">
+              {user?.role || "user"}
+            </p>
           </div>
         </div>
         <form onSubmit={saveProfile} className="space-y-5">
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="profile-name" className="text-[13px] font-semibold text-ink">Name</Label>
-              <Input id="profile-name" value={name} onChange={(event) => setName(event.target.value)} required maxLength={100} className="h-11 rounded-xl border-line text-ink" />
+              <Label
+                htmlFor="profile-name"
+                className="text-[13px] font-semibold text-ink"
+              >
+                Name
+              </Label>
+              <Input
+                id="profile-name"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                required
+                maxLength={100}
+                className="h-11 rounded-xl border-line text-ink"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="profile-email" className="text-[13px] font-semibold text-ink">Email</Label>
-              <Input id="profile-email" value={email} readOnly className="h-11 rounded-xl border-line bg-[#fdfaf7] text-ink" />
+              <Label
+                htmlFor="profile-email"
+                className="text-[13px] font-semibold text-ink"
+              >
+                Email
+              </Label>
+              <Input
+                id="profile-email"
+                value={email}
+                readOnly
+                className="h-11 rounded-xl border-line bg-[#fdfaf7] text-ink"
+              />
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="profile-image" className="text-[13px] font-semibold text-ink">Profile image URL</Label>
-            <Input id="profile-image" type="url" value={image} onChange={(event) => setImage(event.target.value)} placeholder="https://..." className="h-11 rounded-xl border-line text-ink" />
+            <Label
+              htmlFor="profile-image"
+              className="text-[13px] font-semibold text-ink"
+            >
+              Profile image URL
+            </Label>
+            <Input
+              id="profile-image"
+              type="url"
+              value={image}
+              onChange={(event) => setImage(event.target.value)}
+              placeholder="https://..."
+              className="h-11 rounded-xl border-line text-ink"
+            />
           </div>
-          {errorMessage ? <p role="alert" className="rounded-xl bg-brand-tint px-4 py-3 text-sm text-brand">{errorMessage}</p> : null}
-          {message ? <p role="status" className="rounded-xl bg-leaf-tint px-4 py-3 text-sm text-leaf">{message}</p> : null}
-          <Button type="submit" disabled={isSaving} className="rounded-xl bg-brand text-white hover:bg-brand-hover">
+          {errorMessage ? (
+            <p
+              role="alert"
+              className="rounded-xl bg-brand-tint px-4 py-3 text-sm text-brand"
+            >
+              {errorMessage}
+            </p>
+          ) : null}
+          {message ? (
+            <p
+              role="status"
+              className="rounded-xl bg-leaf-tint px-4 py-3 text-sm text-leaf"
+            >
+              {message}
+            </p>
+          ) : null}
+          <Button
+            type="submit"
+            disabled={isSaving}
+            className="rounded-xl bg-brand text-white hover:bg-brand-hover"
+          >
             {isSaving ? "Saving..." : "Save Profile"}
           </Button>
         </form>

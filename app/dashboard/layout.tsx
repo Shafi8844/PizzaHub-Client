@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { getSession } from "@/lib/core/server"
 import { DahsboardSideBar } from "../components/DahsboardSideBar"
-import { Toaster } from "@/components/ui/toast"
 
 const DahsboardLayout = async ({ children }: { children: React.ReactNode }) => {
   const session = await getSession()
@@ -25,7 +24,6 @@ const DahsboardLayout = async ({ children }: { children: React.ReactNode }) => {
         </div>
         {children}
       </main>
-      <Toaster />
     </SidebarProvider>
   )
 }

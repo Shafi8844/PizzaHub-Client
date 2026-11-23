@@ -6,8 +6,15 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type { User } from "@/lib/api/users"
+import { toast } from "@/components/ui/toast"
 
 export function AdminUsersTable({
   initialUsers,
@@ -41,12 +48,28 @@ export function AdminUsersTable({
         body: JSON.stringify({ blocked: !user.blocked }),
       })
       if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        const result = (await response.json().catch(() => null)) as {
+          error?: string
+        } | null
         throw new Error(result?.error ?? "User status could not be updated")
       }
+      toast.add({
+        title: user.blocked ? "User unblocked" : "User blocked",
+        description: `${user.name || user.email || "User"} status updated.`,
+        type: "success",
+      })
       router.refresh()
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "User status could not be updated")
+      const message =
+        error instanceof Error
+          ? error.message
+          : "User status could not be updated"
+      setErrorMessage(message)
+      toast.add({
+        title: "User status update failed",
+        description: message,
+        type: "error",
+      })
     } finally {
       setLoadingId(null)
     }
@@ -55,17 +78,28 @@ export function AdminUsersTable({
   return (
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
-        {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
+        {errorMessage ? (
+          <p
+            role="alert"
+            className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand"
+          >
+            {errorMessage}
+          </p>
+        ) : null}
         <div className="flex flex-col gap-3 border-b border-line p-4 sm:flex-row">
           <Input
             defaultValue={search}
             placeholder="Search by name or email"
             className="h-10 rounded-xl border-line"
             onKeyDown={(e) => {
-              if (e.key === "Enter") setParam("search", (e.target as HTMLInputElement).value)
+              if (e.key === "Enter")
+                setParam("search", (e.target as HTMLInputElement).value)
             }}
           />
-          <Select value={role} onValueChange={(v) => setParam("role", v ?? "all")}>
+          <Select
+            value={role}
+            onValueChange={(v) => setParam("role", v ?? "all")}
+          >
             <SelectTrigger className="h-10 w-full rounded-xl border-line sm:w-[180px]">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
@@ -89,33 +123,57 @@ export function AdminUsersTable({
             </thead>
             <tbody>
               {initialUsers.length === 0 ? (
-                <tr><td colSpan={4} className="px-5 py-12 text-center text-sm text-ink-soft">No users found.</td></tr>
-              ) : initialUsers.map((user) => (
-                <tr key={user._id} className="border-b border-line last:border-b-0">
-                  <td className="px-5 py-4">
-                    <p className="text-sm font-medium text-ink">{user.name || "Unnamed user"}</p>
-                    <p className="mt-1 text-sm text-ink-soft">{user.email}</p>
-                  </td>
-                  <td className="px-5 py-4 text-sm capitalize text-ink-soft">{user.role || "customer"}</td>
-                  <td className="px-5 py-4">
-                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${user.blocked ? "bg-brand-tint text-brand" : "bg-leaf-tint text-leaf"}`}>
-                      {user.blocked ? "Blocked" : "Active"}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={loadingId === user._id || user.canBlock === false}
-                      title={user.canBlock === false ? "You cannot change your own admin account" : undefined}
-                      onClick={() => toggleBlock(user)}
-                      className="rounded-lg border-line text-ink-soft hover:bg-[#f5ede3] hover:text-ink"
-                    >
-                      {user.blocked ? "Unblock" : "Block"}
-                    </Button>
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="px-5 py-12 text-center text-sm text-ink-soft"
+                  >
+                    No users found.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                initialUsers.map((user) => (
+                  <tr
+                    key={user._id}
+                    className="border-b border-line last:border-b-0"
+                  >
+                    <td className="px-5 py-4">
+                      <p className="text-sm font-medium text-ink">
+                        {user.name || "Unnamed user"}
+                      </p>
+                      <p className="mt-1 text-sm text-ink-soft">{user.email}</p>
+                    </td>
+                    <td className="px-5 py-4 text-sm text-ink-soft capitalize">
+                      {user.role || "customer"}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${user.blocked ? "bg-brand-tint text-brand" : "bg-leaf-tint text-leaf"}`}
+                      >
+                        {user.blocked ? "Blocked" : "Active"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={
+                          loadingId === user._id || user.canBlock === false
+                        }
+                        title={
+                          user.canBlock === false
+                            ? "You cannot change your own admin account"
+                            : undefined
+                        }
+                        onClick={() => toggleBlock(user)}
+                        className="rounded-lg border-line text-ink-soft hover:bg-[#f5ede3] hover:text-ink"
+                      >
+                        {user.blocked ? "Unblock" : "Block"}
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

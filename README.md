@@ -17,12 +17,14 @@ PizzaHub is a full-stack pizza ordering and delivery platform where customers br
 
 ### Client (`pizzaHub-client`)
 - Next.js 16 (App Router), React 19, TypeScript
-- Tailwind CSS 4, shadcn/base-ui components, Lucide icons
+- Tailwind CSS 4, shadcn/base-ui components, Lucide icons, Motion for React
 - Better Auth client + Mongo adapter
-- Stripe.js / Stripe checkout redirect
+- Stripe server SDK for vendor subscription checkout
+- `mongodb`, `better-auth`, `@better-auth/mongo-adapter`, `next-themes`, `lucide-react`, `cn`, `class-variance-authority`, and `tw-animate-css`
 
 ### Server (`backend`)
 - Node.js, Express 5
+- `express`, `cors`, `mongodb`, `stripe`, `jose`, and `dotenv`
 - MongoDB Node driver
 - Stripe webhooks/checkout verification
 - JOSE/JWKS JWT verification against Better Auth
@@ -64,8 +66,9 @@ GOOGLE_CLIENT_SECRET=
 IMGBB_API_KEY=
 
 STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
 ```
+
+The Stripe webhook signing secret belongs in the backend environment only.
 
 ### `backend/.env`
 
@@ -106,7 +109,7 @@ Use Stripe CLI to forward webhooks to the backend:
 stripe listen --forward-to localhost:5050/webhooks/stripe
 ```
 
-Set the printed webhook signing secret as `STRIPE_WEBHOOK_SECRET` in both client/backend env files where required.
+Copy the printed `whsec_...` value to `backend/.env` as `STRIPE_WEBHOOK_SECRET`. Keep the listener running during local checkout testing.
 
 ## Deployment Checklist
 
@@ -119,6 +122,6 @@ Set the printed webhook signing secret as `STRIPE_WEBHOOK_SECRET` in both client
 
 ## Links
 
-- Live Website: <add-live-url>
-- Client Repository: <add-client-repo-url>
-- Server Repository: <add-server-repo-url>
+- Live Website: Not deployed yet
+- Client Repository: https://github.com/Shafi8844/PizzaHub-Client
+- Server Repository: https://github.com/Shafi8844/PizzaHub-server

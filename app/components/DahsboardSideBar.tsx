@@ -66,7 +66,11 @@ const menuItems: Record<Role, NavItem[]> = {
   ],
   customer: [
     { label: "Overview", href: "/dashboard/customer", icon: LayoutDashboard },
-    { label: "My Orders", href: "/dashboard/customer/orders", icon: ClipboardList },
+    {
+      label: "My Orders",
+      href: "/dashboard/customer/orders",
+      icon: ClipboardList,
+    },
     {
       label: "Profile Settings",
       href: "/dashboard/customer/settings",
@@ -81,7 +85,16 @@ const menuItems: Record<Role, NavItem[]> = {
       href: "/dashboard/admin/menu-items",
       icon: UtensilsCrossed,
     },
-    { label: "Transactions", href: "/dashboard/admin/transactions", icon: Receipt },
+    {
+      label: "Transactions",
+      href: "/dashboard/admin/transactions",
+      icon: Receipt,
+    },
+    {
+      label: "Profile Settings",
+      href: "/dashboard/admin/settings",
+      icon: Settings,
+    },
   ],
 }
 
@@ -135,7 +148,10 @@ export function DahsboardSideBar() {
             {isPending ? (
               <SidebarMenu>
                 {[0, 1, 2, 3].map((index) => (
-                  <SidebarMenuItem key={index} className="h-9 animate-pulse rounded-lg bg-[#f3ece3]" />
+                  <SidebarMenuItem
+                    key={index}
+                    className="h-9 animate-pulse rounded-lg bg-[#f3ece3]"
+                  />
                 ))}
               </SidebarMenu>
             ) : (
@@ -175,8 +191,12 @@ export function DahsboardSideBar() {
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-ink">{displayName}</p>
-            <p className="truncate text-xs text-ink-soft">{user?.email ?? "Guest"}</p>
+            <p className="truncate text-sm font-semibold text-ink">
+              {displayName}
+            </p>
+            <p className="truncate text-xs text-ink-soft">
+              {user?.email ?? "Guest"}
+            </p>
           </div>
         </div>
         <SidebarSeparator className="my-1 bg-line" />

@@ -5,6 +5,7 @@ import { createBackendToken } from "@/lib/api/backend-token"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { DashboardShell, StatCard } from "../_components/dashboard-shell"
+import { DashboardChart } from "../_components/dashboard-chart"
 
 const VendorDashBoardPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -19,7 +20,9 @@ const VendorDashBoardPage = async () => {
   const active = menu.filter((i) => i.status === "approved").length
   const pendingOrders = orders.filter((o) => o.status === "pending").length
   const acceptedOrders = orders.filter((o) => o.status === "accepted").length
-  const premium = Boolean((session?.user as { premium?: boolean } | undefined)?.premium)
+  const premium = Boolean(
+    (session?.user as { premium?: boolean } | undefined)?.premium
+  )
 
   return (
     <DashboardShell
@@ -33,16 +36,40 @@ const VendorDashBoardPage = async () => {
         <StatCard label="Pending Orders" value={pendingOrders} />
         <StatCard label="Accepted Orders" value={acceptedOrders} />
       </div>
+      <DashboardChart
+        title="Menu and order activity"
+        description="A quick view of your current menu and customer orders."
+        data={[
+          { label: "Approved items", value: active, color: "bg-leaf" },
+          {
+            label: "Pending items",
+            value: menu.filter((item) => item.status === "pending").length,
+            color: "bg-gold",
+          },
+          { label: "Pending orders", value: pendingOrders, color: "bg-brand" },
+          {
+            label: "Accepted orders",
+            value: acceptedOrders,
+            color: "bg-ink-soft",
+          },
+        ]}
+      />
 
       <Card className="mt-6 rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
         <CardContent className="flex flex-col gap-2 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-ink">Current Subscription</p>
+            <p className="text-sm font-semibold text-ink">
+              Current Subscription
+            </p>
             <p className="mt-1 text-sm text-ink-soft">
-              {premium ? "Premium plan - unlimited active items and featured placement." : "Free plan - up to 3 active menu items."}
+              {premium
+                ? "Premium plan - unlimited active items and featured placement."
+                : "Free plan - up to 3 active menu items."}
             </p>
           </div>
-          <span className={`inline-flex w-fit rounded-full px-3 py-1.5 text-xs font-semibold ${premium ? "bg-brand-tint text-brand" : "bg-[#f3ece3] text-ink-soft"}`}>
+          <span
+            className={`inline-flex w-fit rounded-full px-3 py-1.5 text-xs font-semibold ${premium ? "bg-brand-tint text-brand" : "bg-[#f3ece3] text-ink-soft"}`}
+          >
             {premium ? "Premium" : "Free"}
           </span>
         </CardContent>

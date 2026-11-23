@@ -36,7 +36,7 @@ export default function Nav() {
       ? "/dashboard/vendor/settings"
       : role === "customer"
         ? "/dashboard/customer/settings"
-        : "/dashboard/admin"
+        : "/dashboard/admin/settings"
 
   async function handleSignOut() {
     await signOut()
@@ -68,7 +68,7 @@ export default function Nav() {
           <div className="h-9 w-28 animate-pulse rounded-xl bg-[#f3ece3]" />
         ) : session?.user ? (
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-2 rounded-xl p-1 pr-2 outline-none transition-colors hover:bg-[#fdf5ed] focus-visible:ring-2 focus-visible:ring-brand/30">
+            <DropdownMenuTrigger className="flex items-center gap-2 rounded-xl p-1 pr-2 transition-colors outline-none hover:bg-[#fdf5ed] focus-visible:ring-2 focus-visible:ring-brand/30">
               <Avatar className="size-8">
                 <AvatarImage
                   src={session.user.image ?? undefined}

@@ -4,6 +4,7 @@ import { createBackendToken } from "@/lib/api/backend-token"
 import { auth } from "@/lib/auth"
 import { headers } from "next/headers"
 import { DashboardShell, StatCard } from "../_components/dashboard-shell"
+import { DashboardChart } from "../_components/dashboard-chart"
 
 const CustomerDashboardPage = async () => {
   const session = await auth.api.getSession({ headers: await headers() })
@@ -27,6 +28,15 @@ const CustomerDashboardPage = async () => {
         <StatCard label="Accepted" value={accepted} />
         <StatCard label="Rejected" value={rejected} />
       </div>
+      <DashboardChart
+        title="Order status"
+        description="Your orders grouped by their current status."
+        data={[
+          { label: "Pending", value: pending, color: "bg-gold" },
+          { label: "Accepted", value: accepted, color: "bg-leaf" },
+          { label: "Rejected", value: rejected, color: "bg-brand" },
+        ]}
+      />
       <Card className="mt-6 rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
         <CardContent className="p-6">
           <p className="text-sm font-semibold text-ink">Recent activity</p>

@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { useSession } from "@/lib/auth-client"
 import { createOrder } from "@/lib/api/order"
 import type { MenuItem } from "@/lib/api/menu"
+import { toast } from "@/components/ui/toast"
 
 const inputClassName =
   "h-11 rounded-xl border-line bg-white px-3.5 text-sm text-ink placeholder:text-[#9a8e82] focus-visible:border-brand focus-visible:ring-brand/15"
@@ -28,7 +29,9 @@ export function OrderForm({ item }: { item: MenuItem }) {
     setError("")
 
     if (!user) {
-      router.push(`/sign-in?redirectTo=${encodeURIComponent(`/order/${item._id}`)}`)
+      router.push(
+        `/sign-in?redirectTo=${encodeURIComponent(`/order/${item._id}`)}`
+      )
       return
     }
 
@@ -44,8 +47,12 @@ export function OrderForm({ item }: { item: MenuItem }) {
       quantity,
       totalPrice: Number(item.price) * quantity,
       customerId: user.id,
-      customerName: String(formData.get("customerName") ?? user.name ?? "").trim(),
-      customerEmail: String(formData.get("customerEmail") ?? user.email ?? "").trim(),
+      customerName: String(
+        formData.get("customerName") ?? user.name ?? ""
+      ).trim(),
+      customerEmail: String(
+        formData.get("customerEmail") ?? user.email ?? ""
+      ).trim(),
       deliveryAddress: String(formData.get("deliveryAddress") ?? "").trim(),
       phone: String(formData.get("phone") ?? "").trim(),
       deliveryDate: String(formData.get("deliveryDate") ?? "").trim(),
@@ -58,13 +65,32 @@ export function OrderForm({ item }: { item: MenuItem }) {
       setLoading(true)
       const res = await createOrder(orderDetails)
       if (res?.insertedId) {
+        toast.add({
+          title: "Order placed",
+          description: "Your request was sent to the vendor.",
+          type: "success",
+        })
         router.push("/dashboard/customer/orders")
         router.refresh()
       } else {
         setError("Could not place the order. Please try again.")
+        toast.add({
+          title: "Order could not be placed",
+          description: "Please check the details and try again.",
+          type: "error",
+        })
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Could not place the order. Please try again.")
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not place the order. Please try again."
+      setError(message)
+      toast.add({
+        title: "Order could not be placed",
+        description: message,
+        type: "error",
+      })
     } finally {
       setLoading(false)
     }
@@ -157,7 +183,8 @@ export function OrderForm({ item }: { item: MenuItem }) {
 
       <div className="space-y-2">
         <Label htmlFor="note" className={labelClassName}>
-          Order note <span className="font-normal text-ink-soft">(optional)</span>
+          Order note{" "}
+          <span className="font-normal text-ink-soft">(optional)</span>
         </Label>
         <Textarea
           id="note"

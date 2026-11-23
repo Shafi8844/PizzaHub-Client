@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Order, OrderStatus } from "@/lib/api/order"
+import { toast } from "@/components/ui/toast"
 
 const statusStyles: Record<OrderStatus, string> = {
   pending: "bg-gold-tint text-gold",
@@ -15,7 +16,11 @@ const statusStyles: Record<OrderStatus, string> = {
   cancelled: "bg-[#f3ece3] text-ink-soft",
 }
 
-export function CustomerOrdersTable({ initialOrders }: { initialOrders: Order[] }) {
+export function CustomerOrdersTable({
+  initialOrders,
+}: {
+  initialOrders: Order[]
+}) {
   const router = useRouter()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
   const [errorMessage, setErrorMessage] = React.useState("")
@@ -31,12 +36,26 @@ export function CustomerOrdersTable({ initialOrders }: { initialOrders: Order[] 
         body: JSON.stringify({ status: "cancelled" }),
       })
       if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        const result = (await response.json().catch(() => null)) as {
+          error?: string
+        } | null
         throw new Error(result?.error ?? "Order could not be cancelled")
       }
+      toast.add({
+        title: "Order cancelled",
+        description: "Your pending order was cancelled.",
+        type: "success",
+      })
       router.refresh()
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Order could not be cancelled")
+      const message =
+        error instanceof Error ? error.message : "Order could not be cancelled"
+      setErrorMessage(message)
+      toast.add({
+        title: "Order cancellation failed",
+        description: message,
+        type: "error",
+      })
     } finally {
       setLoadingId(null)
     }
@@ -45,7 +64,14 @@ export function CustomerOrdersTable({ initialOrders }: { initialOrders: Order[] 
   return (
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
-        {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
+        {errorMessage ? (
+          <p
+            role="alert"
+            className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand"
+          >
+            {errorMessage}
+          </p>
+        ) : null}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>
@@ -61,46 +87,73 @@ export function CustomerOrdersTable({ initialOrders }: { initialOrders: Order[] 
             <tbody>
               {initialOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-sm text-ink-soft">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-12 text-center text-sm text-ink-soft"
+                  >
                     You have no orders yet.
                   </td>
                 </tr>
               ) : (
                 initialOrders.map((order) => (
-                  <tr key={order._id} className="border-b border-line align-top last:border-b-0">
+                  <tr
+                    key={order._id}
+                    className="border-b border-line align-top last:border-b-0"
+                  >
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         {order.itemImage ? (
-                          <Image src={order.itemImage} alt={order.itemName} width={52} height={52} className="size-[52px] rounded-xl object-cover ring-1 ring-line" />
+                          <Image
+                            src={order.itemImage}
+                            alt={order.itemName}
+                            width={52}
+                            height={52}
+                            className="size-[52px] rounded-xl object-cover ring-1 ring-line"
+                          />
                         ) : (
                           <div className="size-[52px] rounded-xl bg-[#f3ece3] ring-1 ring-line" />
                         )}
                         <div>
-                          <p className="text-sm font-medium text-ink">{order.itemName}</p>
+                          <p className="text-sm font-medium text-ink">
+                            {order.itemName}
+                          </p>
                           <p className="mt-1 text-xs text-ink-soft">
-                            Qty {order.quantity ?? 1} · ${Number(order.totalPrice ?? order.unitPrice ?? 0).toFixed(2)}
+                            Qty {order.quantity ?? 1} · $
+                            {Number(
+                              order.totalPrice ?? order.unitPrice ?? 0
+                            ).toFixed(2)}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 text-sm text-ink-soft">{order.vendorId || "—"}</td>
+                    <td className="px-5 py-4 text-sm text-ink-soft">
+                      {order.vendorId || "—"}
+                    </td>
                     <td className="px-5 py-4 text-sm text-ink-soft">
                       <p>{order.deliveryDate || "Not specified"}</p>
-                      <p className="mt-1 max-w-[220px]">{order.deliveryAddress}</p>
+                      <p className="mt-1 max-w-[220px]">
+                        {order.deliveryAddress}
+                      </p>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[order.status] ?? statusStyles.pending}`}>
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[order.status] ?? statusStyles.pending}`}
+                      >
                         {order.status}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-sm text-ink-soft">
-                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "—"}
+                      {order.createdAt
+                        ? new Date(order.createdAt).toLocaleDateString()
+                        : "—"}
                     </td>
                     <td className="px-5 py-4 text-right">
                       <Button
                         size="sm"
                         variant="outline"
-                        disabled={order.status !== "pending" || loadingId === order._id}
+                        disabled={
+                          order.status !== "pending" || loadingId === order._id
+                        }
                         onClick={() => cancelOrder(order)}
                         className="rounded-lg border-brand/30 text-brand hover:bg-brand-tint disabled:opacity-50"
                       >

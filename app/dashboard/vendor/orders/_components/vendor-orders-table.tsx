@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { Order, OrderStatus } from "@/lib/api/order"
+import { toast } from "@/components/ui/toast"
 
 const statusStyles: Record<OrderStatus, string> = {
   pending: "bg-gold-tint text-gold",
@@ -14,7 +15,11 @@ const statusStyles: Record<OrderStatus, string> = {
   cancelled: "bg-[#f3ece3] text-ink-soft",
 }
 
-export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] }) {
+export function VendorOrdersTable({
+  initialOrders,
+}: {
+  initialOrders: Order[]
+}) {
   const router = useRouter()
   const [loadingId, setLoadingId] = React.useState<string | null>(null)
   const [errorMessage, setErrorMessage] = React.useState("")
@@ -30,12 +35,28 @@ export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] })
         body: JSON.stringify({ status }),
       })
       if (!response.ok) {
-        const result = (await response.json().catch(() => null)) as { error?: string } | null
+        const result = (await response.json().catch(() => null)) as {
+          error?: string
+        } | null
         throw new Error(result?.error ?? "Order status could not be updated")
       }
+      toast.add({
+        title: `Order ${status}`,
+        description: `The customer order was ${status}.`,
+        type: "success",
+      })
       router.refresh()
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Order status could not be updated")
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Order status could not be updated"
+      setErrorMessage(message)
+      toast.add({
+        title: "Order update failed",
+        description: message,
+        type: "error",
+      })
     } finally {
       setLoadingId(null)
     }
@@ -44,7 +65,14 @@ export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] })
   return (
     <Card className="rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ring-0">
       <CardContent className="p-0">
-        {errorMessage ? <p role="alert" className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand">{errorMessage}</p> : null}
+        {errorMessage ? (
+          <p
+            role="alert"
+            className="border-b border-line bg-brand-tint px-5 py-3 text-sm text-brand"
+          >
+            {errorMessage}
+          </p>
+        ) : null}
         <div className="overflow-x-auto">
           <table className="w-full min-w-[980px] text-left">
             <thead>
@@ -60,33 +88,50 @@ export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] })
             <tbody>
               {initialOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-12 text-center text-sm text-ink-soft">
+                  <td
+                    colSpan={6}
+                    className="px-5 py-12 text-center text-sm text-ink-soft"
+                  >
                     No customer orders yet.
                   </td>
                 </tr>
               ) : (
                 initialOrders.map((order) => (
-                  <tr key={order._id} className="border-b border-line align-top last:border-b-0">
+                  <tr
+                    key={order._id}
+                    className="border-b border-line align-top last:border-b-0"
+                  >
                     <td className="px-5 py-4 text-sm">
-                      <p className="font-medium text-ink">{order.customerName}</p>
-                      <p className="mt-1 text-ink-soft">{order.customerEmail || "—"}</p>
+                      <p className="font-medium text-ink">
+                        {order.customerName}
+                      </p>
+                      <p className="mt-1 text-ink-soft">
+                        {order.customerEmail || "—"}
+                      </p>
                       <p className="mt-1 text-ink-soft">{order.phone || "—"}</p>
                     </td>
                     <td className="px-5 py-4 text-sm">
                       <p className="font-medium text-ink">{order.itemName}</p>
                       <p className="mt-1 text-ink-soft">
-                        Qty: {order.quantity ?? 1} · ${Number(order.totalPrice ?? order.unitPrice ?? 0).toFixed(2)}
+                        Qty: {order.quantity ?? 1} · $
+                        {Number(
+                          order.totalPrice ?? order.unitPrice ?? 0
+                        ).toFixed(2)}
                       </p>
                     </td>
                     <td className="px-5 py-4 text-sm text-ink-soft">
                       <p>{order.deliveryDate || "Not specified"}</p>
-                      <p className="mt-1 max-w-[220px]">{order.deliveryAddress}</p>
+                      <p className="mt-1 max-w-[220px]">
+                        {order.deliveryAddress}
+                      </p>
                     </td>
                     <td className="px-5 py-4 text-sm text-ink-soft">
                       <p className="max-w-[220px]">{order.note || "—"}</p>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[order.status] ?? statusStyles.pending}`}>
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize ${statusStyles[order.status] ?? statusStyles.pending}`}
+                      >
                         {order.status}
                       </span>
                     </td>
@@ -94,7 +139,10 @@ export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] })
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
-                          disabled={order.status !== "pending" || loadingId === order._id}
+                          disabled={
+                            order.status !== "pending" ||
+                            loadingId === order._id
+                          }
                           onClick={() => updateStatus(order, "accepted")}
                           className="rounded-lg bg-leaf text-white hover:bg-leaf/90 disabled:opacity-50"
                         >
@@ -103,7 +151,10 @@ export function VendorOrdersTable({ initialOrders }: { initialOrders: Order[] })
                         <Button
                           size="sm"
                           variant="outline"
-                          disabled={order.status !== "pending" || loadingId === order._id}
+                          disabled={
+                            order.status !== "pending" ||
+                            loadingId === order._id
+                          }
                           onClick={() => updateStatus(order, "rejected")}
                           className="rounded-lg border-brand/30 text-brand hover:bg-brand-tint disabled:opacity-50"
                         >
